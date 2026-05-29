@@ -27,7 +27,7 @@ function renderLists(points) {
 
   const fr = $("#featured-rewards");
   if (fr) {
-    fr.className = "reward-grid rewards-grid";
+    fr.className = "featured-rewards-grid";
     fr.innerHTML = FEATURED.map(
       (r) => `<article class="reward-card">
         <div class="reward-card-visual">${r.icon}</div>

@@ -9,12 +9,12 @@
     <link rel="stylesheet" href="design-system.css" />
     <link rel="stylesheet" href="app.css" />
   </head>
-  <body class="app-body dashboard-layout app-layout">
+  <body class="app-body dashboard-layout">
     <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div></div>
     <div class="app-bg" aria-hidden="true"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
     <div id="toast-wrap" class="app-toast-wrap"></div>
     <aside id="app-sidebar" class="sidebar app-sidebar"></aside>
-    <main class="main-content app-main">
+    <div class="main-content">
       <div class="page-content">
       <header class="app-header"><div><h1>Settings</h1><p>Customize your experience</p></div></header>
 
@@ -50,7 +50,7 @@
         <button type="button" class="settings-row" id="settings-logout">Logout</button>
       </div>
       </div>
-    </main>
+    </div>
     <nav id="app-bottom-nav" class="app-bottom-nav"></nav>
     <script type="module" src="js/settings-page.js"></script>
   </body>

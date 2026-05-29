@@ -6,107 +6,116 @@
     <title>Dashboard | Shyam Points</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
     <link rel="stylesheet" href="design-system.css" />
     <link rel="stylesheet" href="app.css" />
   </head>
-  <body class="app-body dashboard-layout app-layout">
-    <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div><p>Loading dashboard...</p></div>
+  <body class="app-body dashboard-layout">
+    <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div><p>Loading dashboard…</p></div>
     <div class="app-bg" aria-hidden="true"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
     <div id="toast-wrap" class="app-toast-wrap"></div>
 
-    <aside id="app-sidebar" class="sidebar app-sidebar"></aside>
+    <aside id="app-sidebar" class="sidebar app-sidebar" aria-label="Sidebar navigation"></aside>
 
-    <div class="main-content app-main">
-      <div class="page-content">
-      <header class="app-header">
-        <div>
-          <h1>Hi, <span id="welcome-name">Member</span> 👋</h1>
-          <p id="hero-id">Loyalty ID · —</p>
-        </div>
-        <div class="header-actions">
-          <button type="button" class="header-icon-btn" id="header-notify" aria-label="Notifications"><i class="fa-solid fa-bell"></i></button>
-          <button type="button" class="header-icon-btn" id="header-settings" aria-label="Settings"><i class="fa-solid fa-gear"></i></button>
-          <img id="header-avatar" class="header-avatar" src="" alt="" width="44" height="44" />
-        </div>
-      </header>
-
-      <article class="points-hero">
-        <div class="points-hero-top">
+    <div class="main-content">
+      <div class="page-content dashboard-sections">
+        <header class="app-header">
           <div>
-            <small>Total Points</small>
-            <h2 id="hero-points">0 pts</h2>
-            <small>Lifetime <span id="lifetime-points">0 pts</span></small>
+            <h1>Hi, <span id="welcome-name">Member</span> 👋</h1>
+            <p id="hero-id">Loyalty ID · —</p>
           </div>
-          <span data-tier class="sp-badge tier-lg bronze">Bronze</span>
-        </div>
-        <div>
-          <small id="next-tier-text">500 pts to Silver</small>
-          <div class="progress-track"><div id="hero-progress" class="progress-fill"></div></div>
-        </div>
-      </article>
+          <div class="header-actions">
+            <button type="button" class="header-icon-btn" id="header-notify" aria-label="Notifications"><i class="fa-solid fa-bell"></i></button>
+            <button type="button" class="header-icon-btn" id="header-settings" aria-label="Settings"><i class="fa-solid fa-gear"></i></button>
+            <img id="header-avatar" class="header-avatar" src="" alt="" width="44" height="44" />
+          </div>
+        </header>
 
-      <div class="quick-actions">
-        <a href="scanner.html" class="quick-btn"><i class="fa-solid fa-qrcode"></i>Scan QR</a>
-        <a href="rewards.html" class="quick-btn"><i class="fa-solid fa-gift"></i>Rewards</a>
-        <a href="history.html" class="quick-btn"><i class="fa-solid fa-clock-rotate-left"></i>History</a>
-        <a href="profile.html" class="quick-btn"><i class="fa-solid fa-user"></i>Profile</a>
-      </div>
-
-      <div class="stats-row">
-        <article class="stat-tile"><p>Points today</p><h4 id="stat-today">0</h4></article>
-        <article class="stat-tile"><p>QR scans</p><h4 id="stat-scans">0</h4></article>
-        <article class="stat-tile"><p>Redeemed</p><h4 id="stat-redeemed">0</h4></article>
-        <article class="stat-tile"><p>Ranking</p><h4 id="stat-rank">—</h4></article>
-      </div>
-
-      <div class="two-col-dashboard">
-        <div>
-          <section class="section-block">
-            <div class="section-head"><h3>Recent transactions</h3><a href="history.html" class="sp-btn sp-btn-soft sp-btn-sm">View all</a></div>
-            <div id="wallet-transactions" class="list-stack"></div>
-          </section>
-          <section class="section-block">
-            <div class="section-head"><h3>Featured rewards</h3><a href="rewards.html" class="sp-btn sp-btn-soft sp-btn-sm">Browse</a></div>
-            <div id="featured-rewards" class="reward-grid"></div>
-          </section>
-        </div>
-        <div>
-          <section class="section-block">
-            <div class="section-head"><h3>Leaderboard</h3><span class="section-tag">This week</span></div>
-            <div class="lb-list" id="leaderboard">
-              <div class="lb-row"><span class="lb-rank">1</span><span>Vikram S.</span><strong>12,400 pts</strong></div>
-              <div class="lb-row"><span class="lb-rank">2</span><span>Suresh P.</span><strong>10,850 pts</strong></div>
-              <div class="lb-row highlight"><span class="lb-rank">—</span><span>You</span><strong id="lb-you">0 pts</strong></div>
+        <article class="points-hero">
+          <div class="points-hero-top">
+            <div>
+              <small>Total Points</small>
+              <h2 id="hero-points">0 pts</h2>
+              <small>Lifetime <span id="lifetime-points">0 pts</span></small>
             </div>
-          </section>
-          <section class="section-block">
-            <div class="section-head"><h3>Monthly analytics</h3></div>
-            <div class="analytics-bars">
-              <div class="bar-col"><div class="bar-fill" style="--h:45%"></div><span>M</span></div>
-              <div class="bar-col"><div class="bar-fill" style="--h:72%"></div><span>T</span></div>
-              <div class="bar-col"><div class="bar-fill" style="--h:58%"></div><span>W</span></div>
-              <div class="bar-col"><div class="bar-fill" style="--h:90%"></div><span>T</span></div>
-              <div class="bar-col"><div class="bar-fill" style="--h:65%"></div><span>F</span></div>
-              <div class="bar-col"><div class="bar-fill" style="--h:40%"></div><span>S</span></div>
-              <div class="bar-col"><div class="bar-fill" style="--h:55%"></div><span>S</span></div>
-            </div>
-          </section>
-        </div>
-      </div>
+            <span data-tier class="sp-badge tier-lg bronze">Bronze</span>
+          </div>
+          <div>
+            <small id="next-tier-text">500 pts to Silver</small>
+            <div class="progress-track"><div id="hero-progress" class="progress-fill"></div></div>
+          </div>
+        </article>
 
-      <section class="section-block">
-        <div class="promo-banner">
-          <div><h3>2× Points Weekend</h3><p>Scan verified products this weekend for double rewards.</p></div>
-          <a href="scanner.html" class="sp-btn sp-btn-ghost">Scan now</a>
+        <div class="stats-row">
+          <article class="stat-tile"><p>Points today</p><h4 id="stat-today">0</h4></article>
+          <article class="stat-tile"><p>QR scans</p><h4 id="stat-scans">0</h4></article>
+          <article class="stat-tile"><p>Redeemed</p><h4 id="stat-redeemed">0</h4></article>
+          <article class="stat-tile"><p>Ranking</p><h4 id="stat-rank">—</h4></article>
         </div>
-        <div class="offers-scroll">
-          <span class="offer-pill">New plumber bonus +100</span>
-          <span class="offer-pill gold">Gold tier 1.5×</span>
-          <span class="offer-pill">Tool kit draw</span>
+
+        <div class="quick-actions">
+          <a href="scanner.html" class="quick-btn"><i class="fa-solid fa-qrcode"></i>Scan QR</a>
+          <a href="rewards.html" class="quick-btn"><i class="fa-solid fa-gift"></i>Rewards</a>
+          <a href="history.html" class="quick-btn"><i class="fa-solid fa-clock-rotate-left"></i>History</a>
+          <a href="profile.html" class="quick-btn"><i class="fa-solid fa-user"></i>Profile</a>
         </div>
-      </section>
+
+        <section class="section-block">
+          <div class="section-head">
+            <h3>Featured rewards</h3>
+            <a href="rewards.html" class="sp-btn sp-btn-soft sp-btn-sm">Browse all</a>
+          </div>
+          <div id="featured-rewards" class="featured-rewards-grid"></div>
+        </section>
+
+        <section class="section-block">
+          <div class="section-head">
+            <h3>Recent transactions</h3>
+            <a href="history.html" class="sp-btn sp-btn-soft sp-btn-sm">View all</a>
+          </div>
+          <div id="wallet-transactions" class="list-stack"></div>
+        </section>
+
+        <section class="section-block">
+          <div class="section-head">
+            <h3>Leaderboard</h3>
+            <span class="section-tag">This week</span>
+          </div>
+          <div class="lb-list" id="leaderboard">
+            <div class="lb-row"><span class="lb-rank">1</span><span>Vikram S.</span><strong>12,400 pts</strong></div>
+            <div class="lb-row"><span class="lb-rank">2</span><span>Suresh P.</span><strong>10,850 pts</strong></div>
+            <div class="lb-row highlight"><span class="lb-rank">—</span><span>You</span><strong id="lb-you">0 pts</strong></div>
+          </div>
+        </section>
+
+        <section class="section-block">
+          <div class="section-head"><h3>Monthly analytics</h3></div>
+          <div class="analytics-bars">
+            <div class="bar-col"><div class="bar-fill" style="--h:45%"></div><span>M</span></div>
+            <div class="bar-col"><div class="bar-fill" style="--h:72%"></div><span>T</span></div>
+            <div class="bar-col"><div class="bar-fill" style="--h:58%"></div><span>W</span></div>
+            <div class="bar-col"><div class="bar-fill" style="--h:90%"></div><span>T</span></div>
+            <div class="bar-col"><div class="bar-fill" style="--h:65%"></div><span>F</span></div>
+            <div class="bar-col"><div class="bar-fill" style="--h:40%"></div><span>S</span></div>
+            <div class="bar-col"><div class="bar-fill" style="--h:55%"></div><span>S</span></div>
+          </div>
+        </section>
+
+        <section class="section-block">
+          <div class="promo-banner">
+            <div>
+              <h3>2× Points Weekend</h3>
+              <p>Scan verified Shyam Sanitaries products for double rewards.</p>
+            </div>
+            <a href="scanner.html" class="sp-btn sp-btn-ghost">Scan now</a>
+          </div>
+          <div class="offers-scroll">
+            <span class="offer-pill">New plumber bonus +100</span>
+            <span class="offer-pill gold">Gold tier 1.5×</span>
+            <span class="offer-pill">Tool kit draw</span>
+          </div>
+        </section>
       </div>
     </div>
 
