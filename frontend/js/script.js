@@ -84,7 +84,7 @@ $$(".otp-box").forEach((input, idx, arr) => {
 
 async function init() {
   try {
-    api = await import("../firebase/firebase.js");
+    api = await import("firebase/firebase.js");
     api.subscribeAuth(async (user) => {
       if (!user) {
         $(".logged-in-only").classList.add("hidden");

@@ -3,7 +3,7 @@ import {
   getUserProfile,
   logoutUser,
   getMembership,
-} from "../firebase/firebase.js";
+} from "firebase/firebase.js";
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { getFirestore, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";

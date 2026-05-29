@@ -14,7 +14,7 @@ async function boot() {
 
   let api;
   try {
-    api = await import("../firebase/firebase.js");
+    api = await import("firebase/firebase.js");
   } catch (error) {
     console.error("Firebase failed to load:", error);
     hideLoader();
