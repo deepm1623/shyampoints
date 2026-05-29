@@ -3,14 +3,14 @@ function hideLoader() {
 }
 
 if (document.readyState === "complete") {
-  setTimeout(hideLoader, 400);
+  setTimeout(hideLoader, 500);
 } else {
-  window.addEventListener("load", () => setTimeout(hideLoader, 400), { once: true });
+  window.addEventListener("load", () => setTimeout(hideLoader, 500), { once: true });
+  document.addEventListener("DOMContentLoaded", () => setTimeout(hideLoader, 1200), { once: true });
 }
 
 async function boot() {
   const $ = (s) => document.querySelector(s);
-  const $$ = (s) => [...document.querySelectorAll(s)];
 
   let api;
   try {
@@ -22,9 +22,43 @@ async function boot() {
     return;
   }
 
-  if (location.pathname.endsWith("index.html")) {
-    location.replace("login.html");
-    return;
+  const wrapper = $("#auth-wrapper");
+  const registerLink = $(".register-link");
+  const loginLink = $(".login-link");
+  const isSignupPage = document.body.classList.contains("signup-page");
+
+  function setSignupMode(on) {
+    if (typeof window.setAuthSignupMode === "function") {
+      window.setAuthSignupMode(on);
+      return;
+    }
+    wrapper?.classList.toggle("active", on);
+    wrapper?.classList.toggle("signup-mode", on);
+    document.getElementById("auth-container")?.classList.toggle("signup-mode", on);
+  }
+
+  registerLink?.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (document.getElementById("signup-form")) {
+      setSignupMode(true);
+      history.replaceState(null, "", "login.html?mode=signup");
+    } else {
+      location.href = "signup.html";
+    }
+  });
+
+  loginLink?.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (wrapper) {
+      setSignupMode(false);
+      history.replaceState(null, "", "login.html");
+    } else {
+      location.href = "login.html";
+    }
+  });
+
+  if (!isSignupPage && new URLSearchParams(location.search).get("mode") === "signup") {
+    setSignupMode(true);
   }
 
   const remembered = localStorage.getItem("sp-remember-email");
@@ -36,7 +70,7 @@ async function boot() {
     toast("Welcome to Shyam Points!", "success");
     setTimeout(() => {
       location.href = "dashboard.html";
-    }, 400);
+    }, 450);
   });
 
   function validateEmail(v) {
@@ -78,7 +112,7 @@ async function boot() {
 
   $("#forgot-password")?.addEventListener("click", (e) => {
     e.preventDefault();
-    toast("Contact support@shyamsanitaries.com for password reset.", "error");
+    toast("Password reset: contact support@shyamsanitaries.com or use Firebase console.", "error");
   });
 
   function toast(message, type = "success") {
@@ -111,9 +145,9 @@ async function boot() {
 
   async function runButton(button, fn) {
     if (!button) return;
-    const old = button.textContent;
+    const old = button.innerHTML;
     button.disabled = true;
-    button.textContent = "Please wait…";
+    button.innerHTML = '<span class="btn-loading">Please wait...</span>';
     try {
       await fn();
     } catch (error) {
@@ -121,7 +155,7 @@ async function boot() {
       console.error(error);
     } finally {
       button.disabled = false;
-      button.textContent = old;
+      button.innerHTML = old;
     }
   }
 
@@ -153,8 +187,14 @@ async function boot() {
     e.preventDefault();
     const name = $("#signup-name")?.value.trim() || "";
     const email = $("#signup-email")?.value.trim() || "";
-    const city = $("#signup-city")?.value.trim() || "";
-    const phone = formatPhone($("#signup-country")?.value || "+91", $("#signup-phone")?.value.trim() || "");
+    const city =
+      $("#signup-city")?.value.trim() ||
+      $("#signup-city-inline")?.value.trim() ||
+      "";
+    const phone = formatPhone(
+      $("#signup-country")?.value || "+91",
+      $("#signup-phone")?.value.trim() || ""
+    );
     const password = $("#signup-password")?.value || "";
     const confirm = $("#signup-confirm")?.value || "";
 
@@ -175,6 +215,10 @@ async function boot() {
   hideLoader();
 }
 
+function $$(s) {
+  return [...document.querySelectorAll(s)];
+}
+
 function showBootError(message) {
   const wrap = document.getElementById("toast-container");
   if (!wrap) {
@@ -190,5 +234,5 @@ function showBootError(message) {
 boot().catch((error) => {
   console.error(error);
   hideLoader();
-  showBootError("App failed to start. Refresh or use a local server.");
+  showBootError("App failed to start. Refresh the page or run via a local server.");
 });
