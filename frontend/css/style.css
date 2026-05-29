@@ -1,0 +1,224 @@
+:root {
+  --primary: #2563ff;
+  --soft-blue: #5b8cff;
+  --white: #ffffff;
+  --bg: #f5f7ff;
+  --text: #111827;
+  --muted: #6b7280;
+  --green: #14b86a;
+  --gold: #f5b942;
+  --radius: 20px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  min-height: 100vh;
+}
+.hidden { display: none !important; }
+.bg-gradient {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  background: linear-gradient(180deg, #edf2ff 0%, #f5f7ff 45%, #f7f9ff 100%);
+}
+.bg-bubble {
+  position: fixed;
+  border-radius: 50%;
+  z-index: -2;
+  filter: blur(4px);
+  opacity: 0.35;
+  animation: float 9s ease-in-out infinite alternate;
+}
+.bubble-1 { width: 200px; height: 200px; background: #cfe0ff; top: -60px; left: -30px; }
+.bubble-2 { width: 180px; height: 180px; background: #d8e6ff; right: -50px; top: 30%; }
+.bubble-3 { width: 160px; height: 160px; background: #e7efff; left: 35%; bottom: -50px; }
+.loader-screen {
+  position: fixed;
+  inset: 0;
+  background: rgba(245, 247, 255, 0.95);
+  display: grid;
+  place-items: center;
+  gap: 0.8rem;
+  z-index: 1200;
+  transition: 0.35s ease;
+}
+.loader-screen.hidden { opacity: 0; visibility: hidden; }
+.loader-ring {
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 4px solid rgba(37, 99, 255, 0.2);
+  border-top-color: var(--primary);
+  animation: spin 0.7s linear infinite;
+}
+
+.auth-app {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 20px 14px max(20px, env(safe-area-inset-bottom));
+}
+.welcome-card {
+  background: linear-gradient(135deg, #2563ff 0%, #5b8cff 55%, #7da3ff 100%);
+  color: #fff;
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 20px 40px rgba(37, 99, 255, 0.2);
+}
+.brand-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.brand-logo { display: flex; align-items: center; gap: 14px; }
+.brand-logo-img {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 8px;
+}
+.logo-tagline { margin: 4px 0 0; font-size: 0.92rem; opacity: 0.88; }
+.welcome-card h1 { margin: 0; font-size: 1.3rem; letter-spacing: 0.01em; }
+.welcome-card h2 { margin: 0.2rem 0 0.5rem; font-size: 1.4rem; }
+.welcome-card p { margin: 0; line-height: 1.5; opacity: 0.95; }
+.mini-banner {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+
+.auth-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  margin-top: 14px;
+  padding: 16px;
+  box-shadow: 0 14px 30px rgba(25, 35, 65, 0.08);
+}
+.auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.switch-btn {
+  border: 1px solid #d8e4ff;
+  background: #f8fbff;
+  color: var(--muted);
+  border-radius: 12px;
+  padding: 11px;
+  font-weight: 600;
+}
+.switch-btn.active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--soft-blue));
+  border-color: transparent;
+}
+.auth-form { display: grid; gap: 8px; }
+.auth-form label { font-size: 0.9rem; color: #495670; }
+.auth-form input, .phone-row input, .phone-row select {
+  width: 100%;
+  border: 1px solid #dbe4ff;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px 11px;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+.btn {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.btn-primary {
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--soft-blue));
+  box-shadow: 0 10px 22px rgba(37, 99, 255, 0.2);
+}
+.btn-ghost { background: #eef3ff; color: #1b3f93; border-color: #d8e4ff; }
+.btn-soft { background: #f4f8ff; color: #1f4eb5; border-color: #d7e3ff; width: 100%; margin-top: 8px; }
+.btn-full { width: 100%; }
+
+.divider {
+  margin: 12px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  position: relative;
+}
+.divider::before, .divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 32%;
+  height: 1px;
+  background: #dfe7ff;
+}
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
+.phone-auth-box {
+  margin-top: 12px;
+  border: 1px solid #e2e9ff;
+  border-radius: 14px;
+  padding: 12px;
+  background: #fafcff;
+}
+.phone-auth-box h3 { margin: 0 0 8px; font-size: 0.95rem; }
+.phone-row { display: grid; grid-template-columns: 92px 1fr; gap: 8px; }
+.otp-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 8px; }
+.otp-box { text-align: center; font-size: 1rem; font-weight: 700; }
+.phone-auth-box small { display: block; margin-top: 8px; color: var(--muted); }
+
+.auth-success {
+  margin-top: 12px;
+  border: 1px solid #cde6d8;
+  background: #f2fcf6;
+  border-radius: 14px;
+  padding: 12px;
+}
+.auth-success p { margin: 0 0 10px; color: #0f5132; }
+
+.tier-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  border: 1px solid #e4d4a7;
+  background: #fffaf1;
+  color: #8a6a1e;
+}
+.toast-container {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 1500;
+  display: grid;
+  gap: 8px;
+}
+.toast {
+  min-width: 220px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #dfe6ff;
+  box-shadow: 0 10px 20px rgba(30, 64, 175, 0.1);
+  padding: 10px 12px;
+  transform: translateX(120%);
+  animation: slide 0.28s forwards;
+}
+.toast.success { border-left: 4px solid var(--green); }
+.toast.error { border-left: 4px solid #ff4d6d; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes slide { to { transform: translateX(0); } }
+@keyframes float { to { transform: translateY(-14px) scale(1.06); } }
+
+@media (min-width: 900px) {
+  .auth-app { padding-top: 32px; }
+  .auth-app { display: grid; grid-template-columns: 1fr 1.1fr; gap: 16px; align-items: start; }
+  .welcome-card, .auth-card { margin-top: 0; }
+}
+
+@media (max-width: 420px) {
+  .toast-container { left: 10px; right: 10px; }
+  .toast { min-width: 0; }
+}

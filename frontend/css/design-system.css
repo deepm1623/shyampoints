@@ -1,0 +1,106 @@
+/* Shyam Points — Design System */
+:root {
+  --sp-primary: #2563ff;
+  --sp-primary-dark: #1a46c4;
+  --sp-secondary: #5b8cff;
+  --sp-gold: #f5b942;
+  --sp-bg: #f5f8ff;
+  --sp-card: #ffffff;
+  --sp-text: #0f172a;
+  --sp-muted: #64748b;
+  --sp-border: #e2e8f0;
+  --sp-success: #14b86a;
+  --sp-danger: #ef4444;
+  --sp-radius-sm: 12px;
+  --sp-radius-md: 18px;
+  --sp-radius-lg: 24px;
+  --sp-radius-xl: 32px;
+  --sp-shadow-sm: 0 8px 24px rgba(15, 23, 42, 0.06);
+  --sp-shadow-md: 0 16px 40px rgba(15, 23, 42, 0.1);
+  --sp-shadow-lg: 0 25px 60px rgba(37, 99, 255, 0.15);
+  --sp-gradient: linear-gradient(135deg, #2563ff 0%, #5b8cff 100%);
+  --sp-font: "Inter", system-ui, sans-serif;
+  --sp-font-display: "Sora", "Poppins", sans-serif;
+  --sp-font-brand: "Poppins", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sp-font);
+  color: var(--sp-text);
+  background: var(--sp-bg);
+  overflow-x: hidden;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.sp-container {
+  width: min(1200px, 92vw);
+  margin-inline: auto;
+}
+
+.sp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: var(--sp-radius-md);
+  font-family: var(--sp-font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sp-btn:hover {
+  transform: translateY(-2px);
+}
+
+.sp-btn-primary {
+  background: var(--sp-gradient);
+  color: #fff;
+  box-shadow: var(--sp-shadow-lg);
+}
+
+.sp-btn-ghost {
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--sp-primary);
+  border: 1px solid rgba(37, 99, 255, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+.sp-glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+}
+
+.sp-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.sp-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
