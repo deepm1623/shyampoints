@@ -90,8 +90,9 @@ body {
 .app-shell {
   min-height: 100vh;
   padding: clamp(12px, 2vw, 20px) clamp(12px, 2vw, 20px) 96px;
-  max-width: min(920px, 100%);
-  margin: 0 auto;
+  max-width: none;
+  width: 100%;
+  margin: 0;
   display: grid;
   gap: clamp(12px, 2vw, 16px);
 }

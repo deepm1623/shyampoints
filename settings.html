@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Settings | Shyam Points</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="design-system.css" />
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body class="app-body dashboard-layout app-layout">
+    <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div></div>
+    <div class="app-bg" aria-hidden="true"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+    <div id="toast-wrap" class="app-toast-wrap"></div>
+    <aside id="app-sidebar" class="sidebar app-sidebar"></aside>
+    <main class="main-content app-main">
+      <div class="page-content">
+      <header class="app-header"><div><h1>Settings</h1><p>Customize your experience</p></div></header>
+
+      <div class="settings-group">
+        <div class="settings-row">
+          <span>Dark mode</span>
+          <button type="button" class="toggle" id="theme-toggle" aria-label="Toggle dark mode"></button>
+        </div>
+        <div class="settings-row">
+          <span>Push notifications</span>
+          <button type="button" class="toggle on" id="notif-toggle" aria-label="Toggle notifications"></button>
+        </div>
+        <div class="settings-row">
+          <span>Email alerts</span>
+          <button type="button" class="toggle on" id="email-toggle" aria-label="Toggle email"></button>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <label class="settings-row" for="language-select">
+          <span>Language</span>
+          <select id="language-select" aria-label="Language">
+            <option value="en">English</option>
+            <option value="hi">हिन्दी</option>
+            <option value="gu">ગુજરાતી</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="settings-group">
+        <a href="#" class="settings-row">Privacy policy</a>
+        <a href="#" class="settings-row">Terms of service</a>
+        <button type="button" class="settings-row" id="settings-logout">Logout</button>
+      </div>
+      </div>
+    </main>
+    <nav id="app-bottom-nav" class="app-bottom-nav"></nav>
+    <script type="module" src="js/settings-page.js"></script>
+  </body>
+</html>

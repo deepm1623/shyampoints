@@ -2,12 +2,117 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="refresh" content="0; url=login.html?mode=signup" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Shyam Points | Sign Up</title>
-    <script>location.replace("login.html?mode=signup");</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&family=Sora:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="design-system.css" />
+    <link rel="stylesheet" href="auth.css" />
   </head>
-  <body>
-    <p>Redirecting to sign up… <a href="login.html?mode=signup">Continue</a></p>
+  <body class="signup-page">
+    <div class="page-bg" aria-hidden="true">
+      <div class="page-bg-gradient"></div>
+      <div class="page-orb page-orb-1"></div>
+      <div class="page-orb page-orb-2"></div>
+    </div>
+
+    <div id="auth-loader" class="auth-loader" role="status"><div class="auth-loader-ring"></div><p>Creating your account...</p></div>
+
+    <div class="signup-container">
+      <section class="signup-form-panel">
+        <header class="signup-form-header">
+          <h2>Create Account</h2>
+          <p>Start earning loyalty points today</p>
+        </header>
+
+        <form id="signup-form" class="auth-form-stack" novalidate>
+          <div class="field">
+            <label for="signup-name">Full name</label>
+            <div class="field-input-wrap">
+              <i class="bx bxs-user field-icon"></i>
+              <input id="signup-name" type="text" required minlength="2" autocomplete="name" placeholder="Your full name" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="signup-email">Email</label>
+            <div class="field-input-wrap">
+              <i class="bx bxs-envelope field-icon"></i>
+              <input id="signup-email" type="email" required autocomplete="email" placeholder="you@example.com" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="signup-phone">Mobile number</label>
+            <div class="phone-row">
+              <select id="signup-country" class="country-code" aria-label="Country code">
+                <option value="+91">+91 IN</option>
+                <option value="+971">+971 AE</option>
+              </select>
+              <div class="phone-field field-input-wrap">
+                <i class="bx bxs-phone field-icon"></i>
+                <input id="signup-phone" type="tel" inputmode="numeric" required placeholder="10-digit mobile" />
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label for="signup-city">City</label>
+            <div class="field-input-wrap">
+              <i class="bx bxs-map field-icon"></i>
+              <input id="signup-city" type="text" required minlength="2" autocomplete="address-level2" placeholder="Your city" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="signup-password">Password</label>
+            <div class="field-input-wrap">
+              <i class="bx bxs-lock-alt field-icon"></i>
+              <input id="signup-password" type="password" required minlength="6" autocomplete="new-password" placeholder="Min. 6 characters" />
+              <button type="button" class="toggle-password" data-target="signup-password" aria-label="Show password"><i class="bx bx-show"></i></button>
+            </div>
+            <div class="pw-strength"><div class="pw-strength-track"><div id="pw-strength-bar" class="pw-strength-fill"></div></div><span id="pw-strength-label" class="pw-strength-label"></span></div>
+          </div>
+          <div class="field">
+            <label for="signup-confirm">Confirm password</label>
+            <div class="field-input-wrap">
+              <i class="bx bxs-lock field-icon"></i>
+              <input id="signup-confirm" type="password" required minlength="6" autocomplete="new-password" placeholder="Re-enter password" />
+              <button type="button" class="toggle-password" data-target="signup-confirm" aria-label="Show password"><i class="bx bx-show"></i></button>
+            </div>
+          </div>
+          <label class="remember-check terms-check">
+            <input type="checkbox" id="terms-check" required />
+            <span>I agree to the <a href="#">Terms &amp; Conditions</a> and <a href="#">Privacy Policy</a></span>
+          </label>
+          <div class="signup-actions">
+            <button id="signup-submit" type="submit" class="btn-submit auth-button">Create Account</button>
+            <div class="auth-divider"><span>or</span></div>
+            <button type="button" class="btn-google google-auth">Continue with Google</button>
+            <p class="auth-switch">Already have an account? <a href="login.html">Login</a></p>
+          </div>
+        </form>
+      </section>
+
+      <aside class="signup-brand-panel">
+        <div class="signup-brand-inner">
+          <img src="shyam points logo.png" alt="Shyam Points" width="120" height="120" />
+          <h1>Join Shyam Points</h1>
+          <p class="brand-tag">BY SHYAM SANITARIES</p>
+          <p class="brand-desc">Earn points on every verified product scan. Redeem rewards trusted by plumbers across India.</p>
+          <ul class="auth-feature-grid">
+            <li><i class="fas fa-qrcode"></i> Scan &amp; earn instantly</li>
+            <li><i class="fas fa-gift"></i> Premium reward catalog</li>
+            <li><i class="fas fa-chart-line"></i> Track tiers &amp; history</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+
+    <div id="toast-container" class="toast-container" role="region" aria-live="polite"></div>
+    <script src="auth-animation.js"></script>
+    <script type="module" src="auth.js"></script>
   </body>
 </html>

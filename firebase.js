@@ -48,7 +48,12 @@ export function getMembership(points = 0) {
   return "Bronze";
 }
 
-export async function ensureUserDocument(user, preferredName = "", preferredPhone = "") {
+export async function ensureUserDocument(
+  user,
+  preferredName = "",
+  preferredPhone = "",
+  preferredCity = ""
+) {
   const userRef = doc(db, "users", user.uid);
   const snap = await getDoc(userRef);
 
@@ -57,6 +62,7 @@ export async function ensureUserDocument(user, preferredName = "", preferredPhon
     const updates = {};
     if (preferredName && preferredName !== existing.name) updates.name = preferredName;
     if (preferredPhone && preferredPhone !== existing.phone) updates.phone = preferredPhone;
+    if (preferredCity && preferredCity !== existing.city) updates.city = preferredCity;
     if (Object.keys(updates).length) {
       await setDoc(userRef, updates, { merge: true });
       return { ...existing, ...updates };
@@ -68,20 +74,23 @@ export async function ensureUserDocument(user, preferredName = "", preferredPhon
     name: preferredName || user.displayName || "Shyam Member",
     email: user.email || "",
     phone: preferredPhone || user.phoneNumber || "",
+    city: preferredCity || "",
+    role: "Plumber",
     points: 0,
     membership: "Bronze",
     rewardsRedeemed: 0,
+    productsScanned: 0,
     createdAt: serverTimestamp(),
   };
   await setDoc(userRef, payload, { merge: true });
   return payload;
 }
 
-export async function signupWithEmail(name, email, password, phone = "") {
+export async function signupWithEmail(name, email, password, phone = "", city = "") {
   await ensureAuthReady();
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   if (name) await updateProfile(cred.user, { displayName: name });
-  const data = await ensureUserDocument(cred.user, name, phone);
+  const data = await ensureUserDocument(cred.user, name, phone, city);
   return { user: cred.user, profile: data };
 }
 

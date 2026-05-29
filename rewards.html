@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Rewards | Shyam Points</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="design-system.css" />
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body class="app-body dashboard-layout app-layout">
+    <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div></div>
+    <div class="app-bg" aria-hidden="true"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+    <div id="toast-wrap" class="app-toast-wrap"></div>
+    <aside id="app-sidebar" class="sidebar app-sidebar"></aside>
+    <main class="main-content app-main">
+      <div class="page-content">
+      <header class="app-header">
+        <div><h1>Rewards</h1><p>Redeem your points for premium rewards</p></div>
+        <div class="header-actions">
+          <button type="button" class="header-icon-btn" id="header-notify" aria-label="Notifications"><i class="fa-solid fa-bell"></i></button>
+          <img id="header-avatar" class="header-avatar" alt="" width="44" height="44" />
+        </div>
+      </header>
+      <div class="toolbar-row">
+        <input type="search" id="reward-search" placeholder="Search rewards..." aria-label="Search rewards" />
+        <select id="reward-sort" aria-label="Sort rewards">
+          <option value="points-asc">Points: Low to High</option>
+          <option value="points-desc">Points: High to Low</option>
+          <option value="name">Name A–Z</option>
+        </select>
+      </div>
+      <div class="chips-row" id="reward-filters">
+        <button type="button" class="chip active" data-cat="all">All</button>
+        <button type="button" class="chip" data-cat="Gift Cards">Gift Cards</button>
+        <button type="button" class="chip" data-cat="Cashback">Cashback</button>
+        <button type="button" class="chip" data-cat="Electronics">Electronics</button>
+      </div>
+      <div id="reward-grid" class="reward-grid rewards-grid"></div>
+      </div>
+    </main>
+    <nav id="app-bottom-nav" class="app-bottom-nav"></nav>
+    <a href="scanner.html" class="fab-scan" aria-label="Scan"><i class="fa-solid fa-qrcode"></i></a>
+
+    <div id="redeem-modal" class="app-modal hidden">
+      <div class="modal-panel">
+        <h3 id="redeem-title">Confirm redeem</h3>
+        <p id="redeem-text"></p>
+        <div class="modal-actions">
+          <button type="button" class="sp-btn sp-btn-ghost" id="cancel-redeem">Cancel</button>
+          <button type="button" class="sp-btn sp-btn-primary" id="confirm-redeem">Redeem</button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="js/rewards-page.js"></script>
+  </body>
+</html>

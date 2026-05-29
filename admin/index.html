@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin | Shyam Points</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="../design-system.css" />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body class="admin-body">
+    <aside class="admin-sidebar">
+      <a href="index.html" class="admin-brand">
+        <img src="../shyam points logo.png" alt="" width="36" height="36" />
+        <span>Shyam Admin</span>
+      </a>
+      <nav class="admin-nav">
+        <a href="index.html" class="active" data-section="dashboard"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+        <a href="#" data-section="users"><i class="fa-solid fa-users"></i> Users</a>
+        <a href="#" data-section="rewards"><i class="fa-solid fa-gift"></i> Rewards</a>
+        <a href="#" data-section="qrcodes"><i class="fa-solid fa-qrcode"></i> QR Codes</a>
+        <a href="#" data-section="transactions"><i class="fa-solid fa-receipt"></i> Transactions</a>
+        <a href="#" data-section="redemptions"><i class="fa-solid fa-arrow-right-arrow-left"></i> Redemptions</a>
+        <a href="#" data-section="analytics"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+      </nav>
+      <a href="../index.html" class="admin-back"><i class="fa-solid fa-arrow-left"></i> Back to site</a>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-top">
+        <h1 id="admin-title">Dashboard</h1>
+        <input type="search" class="admin-search" placeholder="Search..." aria-label="Search admin" />
+      </header>
+
+      <section id="sec-dashboard" class="admin-section active">
+        <div class="admin-stats">
+          <article class="admin-stat"><p>Total users</p><h3 data-count="12480">0</h3></article>
+          <article class="admin-stat"><p>QR scans (30d)</p><h3 data-count="89240">0</h3></article>
+          <article class="admin-stat"><p>Redemptions</p><h3 data-count="3210">0</h3></article>
+          <article class="admin-stat"><p>Points issued</p><h3 data-count="2400000">0</h3></article>
+        </div>
+        <div class="admin-panel sp-card">
+          <h3>Recent activity</h3>
+          <table class="admin-table">
+            <thead><tr><th>User</th><th>Action</th><th>Points</th><th>Time</th></tr></thead>
+            <tbody>
+              <tr><td>Rajesh K.</td><td>QR Scan</td><td>+24</td><td>2 min ago</td></tr>
+              <tr><td>Priya M.</td><td>Redeem</td><td>-900</td><td>15 min ago</td></tr>
+              <tr><td>Amit S.</td><td>QR Scan</td><td>+18</td><td>1 hr ago</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="sec-users" class="admin-section">
+        <div class="admin-panel sp-card"><h3>Users</h3><p class="muted">Manage plumbers, retailers, and contractors.</p></div>
+      </section>
+      <section id="sec-rewards" class="admin-section"><div class="admin-panel sp-card"><h3>Rewards catalog</h3></div></section>
+      <section id="sec-qrcodes" class="admin-section"><div class="admin-panel sp-card"><h3>QR code batches</h3></div></section>
+      <section id="sec-transactions" class="admin-section"><div class="admin-panel sp-card"><h3>Transactions</h3></div></section>
+      <section id="sec-redemptions" class="admin-section"><div class="admin-panel sp-card"><h3>Redemptions</h3></div></section>
+      <section id="sec-analytics" class="admin-section"><div class="admin-panel sp-card"><h3>Analytics</h3></div></section>
+    </main>
+    <script src="admin.js" defer></script>
+  </body>
+</html>

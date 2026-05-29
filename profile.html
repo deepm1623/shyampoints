@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Profile | Shyam Points</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="design-system.css" />
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body class="app-body dashboard-layout app-layout">
+    <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div></div>
+    <div class="app-bg" aria-hidden="true"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+    <div id="toast-wrap" class="app-toast-wrap"></div>
+    <aside id="app-sidebar" class="sidebar app-sidebar"></aside>
+    <main class="main-content app-main">
+      <div class="page-content profile-page-layout">
+      <header class="app-header"><div><h1>Profile</h1><p>Your account details</p></div></header>
+      <article class="profile-hero">
+        <img id="profile-avatar" class="profile-avatar" alt="Profile" width="96" height="96" />
+        <h2 id="profile-name">Member</h2>
+        <span data-tier class="sp-badge bronze">Bronze</span>
+        <div class="profile-meta-grid">
+          <div><small>Email</small><strong id="profile-email">—</strong></div>
+          <div><small>Mobile</small><strong id="profile-phone">—</strong></div>
+          <div><small>City</small><strong id="profile-city">—</strong></div>
+          <div><small>Role</small><strong id="profile-role">Plumber</strong></div>
+          <div><small>Total points</small><strong id="profile-points">0 pts</strong></div>
+          <div><small>Member ID</small><strong id="profile-id">—</strong></div>
+        </div>
+        <button type="button" class="sp-btn sp-btn-primary sp-btn-full" id="edit-profile-btn">Edit profile</button>
+        <button type="button" class="sp-btn sp-btn-ghost sp-btn-full" id="logout-btn" style="margin-top:10px">Logout</button>
+      </article>
+      <div class="quick-actions">
+        <a href="history.html" class="quick-btn"><i class="fa-solid fa-clock-rotate-left"></i>History</a>
+        <a href="rewards.html" class="quick-btn"><i class="fa-solid fa-gift"></i>Rewards</a>
+        <a href="notifications.html" class="quick-btn"><i class="fa-solid fa-bell"></i>Alerts</a>
+        <a href="settings.html" class="quick-btn"><i class="fa-solid fa-gear"></i>Settings</a>
+      </div>
+      </div>
+    </main>
+    <nav id="app-bottom-nav" class="app-bottom-nav"></nav>
+    <div id="logout-modal" class="app-modal hidden">
+      <div class="modal-panel">
+        <h3>Logout?</h3>
+        <p>You can sign in again anytime.</p>
+        <div class="modal-actions">
+          <button type="button" class="sp-btn sp-btn-ghost" id="cancel-logout">Stay</button>
+          <button type="button" class="sp-btn sp-btn-primary" id="confirm-logout">Logout</button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="js/profile-page.js"></script>
+  </body>
+</html>

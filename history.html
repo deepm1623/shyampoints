@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>History | Shyam Points</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="design-system.css" />
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body class="app-body dashboard-layout app-layout history-page">
+    <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div></div>
+    <div class="app-bg" aria-hidden="true"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+    <div id="toast-wrap" class="app-toast-wrap"></div>
+    <aside id="app-sidebar" class="sidebar app-sidebar"></aside>
+    <main class="main-content app-main">
+      <div class="page-content">
+      <header class="app-header">
+        <div><h1>History</h1><p>Earned &amp; redeemed activity</p></div>
+      </header>
+      <div class="toolbar-row">
+        <input type="search" id="history-search" placeholder="Search transactions..." aria-label="Search" />
+        <select id="history-filter" aria-label="Filter">
+          <option value="all">All</option>
+          <option value="earned">Earned</option>
+          <option value="redeemed">Redeemed</option>
+        </select>
+      </div>
+      <div id="history-timeline" class="timeline"></div>
+      </div>
+    </main>
+    <nav id="app-bottom-nav" class="app-bottom-nav"></nav>
+    <script type="module" src="js/history-page.js"></script>
+  </body>
+</html>

@@ -357,8 +357,192 @@
   color: rgba(255, 255, 255, 0.55);
 }
 
+.hero-grid {
+  display: grid;
+  gap: 40px;
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .hero-grid { grid-template-columns: 1.1fr 0.9fr; text-align: left; }
+  .hero-copy .landing-hero-lead { margin-left: 0; }
+  .hero-copy .landing-hero-cta { justify-content: flex-start; }
+}
+
+.hero-copy h1 {
+  font-family: var(--sp-font-display);
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0 0 16px;
+  color: var(--sp-text);
+}
+
+.qr-illustration {
+  position: relative;
+  width: min(280px, 70vw);
+  margin: 0 auto;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+
+.qr-frame {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--sp-radius-xl);
+  background: var(--sp-gradient);
+  display: grid;
+  place-items: center;
+  font-size: 5rem;
+  color: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--sp-shadow-lg);
+}
+
+.qr-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 16px;
+  background: #fff;
+  padding: 8px;
+  z-index: 2;
+}
+
+.qr-pulse {
+  position: absolute;
+  inset: -12px;
+  border: 2px solid var(--sp-primary);
+  border-radius: var(--sp-radius-xl);
+  animation: qr-pulse 2s ease-out infinite;
+}
+
+@keyframes qr-pulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.08); opacity: 0; }
+}
+
+.landing-section-alt { background: #eef3ff; }
+
+.benefits-grid {
+  display: grid;
+  gap: 32px;
+  align-items: center;
+}
+
+@media (min-width: 800px) {
+  .benefits-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 24px 0 0;
+  display: grid;
+  gap: 14px;
+}
+
+.benefits-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+}
+
+.benefits-list i { color: var(--sp-primary); width: 24px; }
+
+.benefits-visual {
+  padding: 28px;
+  border-radius: var(--sp-radius-lg);
+  display: grid;
+  gap: 16px;
+}
+
+.stat-inline { margin: 0; font-size: 1.1rem; }
+.stat-inline strong { font-size: 2rem; color: var(--sp-primary); }
+
+.stats-grid-landing {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .stats-grid-landing { grid-template-columns: repeat(4, 1fr); }
+}
+
+.stat-block {
+  text-align: center;
+  padding: 24px 16px;
+  background: var(--sp-card);
+  border-radius: var(--sp-radius-lg);
+  box-shadow: var(--sp-shadow-sm);
+}
+
+.stat-block h3 {
+  margin: 0;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-family: var(--sp-font-display);
+  color: var(--sp-primary);
+}
+
+.stat-block p { margin: 8px 0 0; color: var(--sp-muted); font-size: 0.9rem; }
+
+.faq-wrap { max-width: 720px; margin: 0 auto; }
+
+.faq-item {
+  background: var(--sp-card);
+  border-radius: var(--sp-radius-md);
+  padding: 16px 20px;
+  margin-bottom: 10px;
+  border: 1px solid var(--sp-border);
+}
+
+.faq-item summary {
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+
+.faq-item summary::-webkit-details-marker { display: none; }
+
+.faq-item p { margin: 12px 0 0; color: var(--sp-muted); line-height: 1.6; }
+
+.landing-cta-section {
+  padding: clamp(48px, 8vw, 80px) 0;
+  background: linear-gradient(180deg, var(--sp-bg), #eef3ff);
+}
+
+.nav-toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--sp-border);
+  border-radius: 12px;
+  background: var(--sp-card);
+  cursor: pointer;
+}
+
 @media (max-width: 768px) {
-  .landing-nav-links a:not(.sp-btn) {
+  .nav-toggle { display: grid; place-items: center; }
+  .landing-nav-links {
     display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    padding: 16px;
+    background: var(--sp-glass);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--sp-border);
   }
+  .landing-nav-links.is-open { display: flex; }
+  .landing-nav-inner { position: relative; flex-wrap: wrap; }
+}
+
+@media (max-width: 320px) {
+  .landing-hero-cta .sp-btn { width: 100%; }
+  .features-grid { grid-template-columns: 1fr; }
 }
