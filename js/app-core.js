@@ -29,6 +29,60 @@ export function format(n) {
   return new Intl.NumberFormat("en-IN").format(Math.round(Number(n)));
 }
 
+export function formatCount(n) {
+  if (n === null || n === undefined || Number.isNaN(Number(n))) return "0";
+  return format(n);
+}
+
+export function getInitials(name) {
+  const parts = String(name || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!parts.length) return "SP";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function ensureAvatarWrap(img) {
+  if (!img || img.dataset.avatarWrapped) return img.parentElement?.querySelector(".sp-avatar-fallback");
+  const wrap = document.createElement("span");
+  wrap.className = "sp-avatar-wrap";
+  img.parentNode.insertBefore(wrap, img);
+  wrap.appendChild(img);
+  const fallback = document.createElement("span");
+  fallback.className = "sp-avatar-fallback";
+  fallback.setAttribute("aria-hidden", "true");
+  wrap.appendChild(fallback);
+  img.dataset.avatarWrapped = "1";
+  return fallback;
+}
+
+export function applyAvatar(img, url, name) {
+  if (!img) return;
+  const fallback = ensureAvatarWrap(img);
+  const initials = getInitials(name);
+  if (fallback) fallback.textContent = initials;
+
+  img.onerror = () => {
+    img.hidden = true;
+    img.removeAttribute("src");
+    if (fallback) fallback.hidden = false;
+  };
+
+  if (url) {
+    img.hidden = false;
+    if (fallback) fallback.hidden = true;
+    img.classList.remove("avatar-placeholder");
+    img.src = url;
+  } else {
+    img.hidden = true;
+    img.removeAttribute("src");
+    img.classList.add("avatar-placeholder");
+    if (fallback) fallback.hidden = false;
+  }
+}
+
 export function membershipProgress(points, tier) {
   if (points === null || tier === null) return { percent: 0, next: "No tier data available" };
   if (tier === "Platinum") return { percent: 100, next: "Top tier unlocked" };
@@ -78,65 +132,73 @@ function setText(id, val) {
   if (el) el.textContent = val;
 }
 
-function setSrc(id, src) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (src) {
-    el.src = src;
-    el.classList.remove("avatar-placeholder");
-  } else {
-    el.removeAttribute("src");
-    el.classList.add("avatar-placeholder");
-  }
+function memberIdFromUid(uid) {
+  return `SP-${String(uid || "").slice(0, 8).toUpperCase()}`;
+}
+
+function ensureTopbarLayout() {
+  const left = $(".sp-topbar-left");
+  if (!left || left.dataset.builtTopbar) return;
+  left.dataset.builtTopbar = "1";
+  left.innerHTML = `
+    <p class="sp-greeting">Hello, <span id="welcome-name">Member</span> 👋</p>
+    <p class="sp-topbar-member"><span class="sp-member-label">Member ID:</span> <span id="hero-id">--</span></p>
+    <p class="sp-topbar-tier-row"><span data-tier class="sp-pill">--</span></p>`;
 }
 
 export function renderUserChrome(user, profile) {
+  ensureTopbarLayout();
+
+  const hasProfile = profile !== null && profile !== undefined;
   const p = normalizeProfile(profile || {});
-  const name = p.fullName || user.displayName || null;
-  const currentPoints = p.currentPoints;
-  const lifetimePoints = p.lifetimePoints;
-  const walletBalance = p.walletBalance;
-  const tier = p.tier || (currentPoints !== null ? getMembership(currentPoints) : null);
-  const avatar = p.photoURL || p.avatarUrl || user.photoURL || "";
+  const name = p.fullName || user.displayName || "";
+  const currentPoints = hasProfile ? (p.currentPoints ?? 0) : null;
+  const lifetimePoints = hasProfile ? (p.lifetimePoints ?? 0) : null;
+  const walletBalance = hasProfile ? (p.walletBalance ?? 0) : null;
+  const tier =
+    p.tier || (hasProfile && currentPoints !== null ? getMembership(currentPoints) : null);
+  const avatar = p.profileImage || p.photoURL || p.avatarUrl || user.photoURL || "";
+  const memberId = p.memberId || memberIdFromUid(user.uid);
 
-  if (name) {
-    setText("welcome-name", name.split(" ")[0]);
-    setText("header-user-name", name);
-    setText("profile-name", name);
-  } else {
-    setText("welcome-name", "--");
-    setText("header-user-name", "--");
-    setText("profile-name", "--");
-  }
+  setText("welcome-name", name || "Member");
+  setText("header-user-name", name || "Member");
+  setText("profile-name", name || "—");
 
-  setText("hero-id", `Member ID · SP-${user.uid.slice(0, 8).toUpperCase()}`);
-  setText("profile-id", `SP-${user.uid.slice(0, 8).toUpperCase()}`);
+  setText("hero-id", memberId);
+  setText("profile-id", memberId);
 
-  setText("hero-points", currentPoints !== null ? `${format(currentPoints)} pts` : "--");
-  setText("wallet-points", walletBalance !== null ? `${format(walletBalance)} pts` : "--");
-  setText("lifetime-points", lifetimePoints !== null ? `${format(lifetimePoints)} pts` : "--");
-  setText("sidebar-points", walletBalance !== null ? `${format(walletBalance)} pts` : currentPoints !== null ? `${format(currentPoints)} pts` : "--");
-  setText("profile-points", currentPoints !== null ? `${format(currentPoints)} pts` : "--");
-  setText("profile-lifetime", lifetimePoints !== null ? `${format(lifetimePoints)} pts` : "--");
-  setText("profile-wallet", walletBalance !== null ? `${format(walletBalance)} pts` : "--");
+  const pts = (n) => (hasProfile ? `${formatCount(n)} pts` : "0 pts");
+  setText("hero-points", pts(currentPoints));
+  setText("wallet-points", pts(walletBalance));
+  setText("lifetime-points", pts(lifetimePoints));
+  setText("sidebar-points", pts(walletBalance));
+  setText("profile-points", pts(currentPoints));
+  setText("profile-lifetime", pts(lifetimePoints));
+  setText("profile-wallet", pts(walletBalance));
 
-  setText("profile-email", displayValue(p.email || user.email));
-  setText("profile-phone", displayValue(p.mobile));
-  setText("profile-city", displayValue(p.city));
-  setText("profile-role", displayValue(p.role));
+  setText("profile-email", displayValue(p.email || user.email, null, "—"));
+  setText("profile-phone", displayValue(p.mobile, null, "—"));
+  setText("profile-city", displayValue(p.city, null, "—"));
+  setText("profile-role", displayValue(p.role, null, "—"));
 
-  setText("dash-role", displayValue(p.role));
-  setText("dash-city", displayValue(p.city));
-  setText("dash-wallet", walletBalance !== null ? `${format(walletBalance)} pts` : "--");
-  setText("dash-current-points", currentPoints !== null ? `${format(currentPoints)} pts` : "--");
-  setText("dash-lifetime-points", lifetimePoints !== null ? `${format(lifetimePoints)} pts` : "--");
-  setText("stat-current", currentPoints !== null ? format(currentPoints) : "--");
-  setText("stat-lifetime", lifetimePoints !== null ? format(lifetimePoints) : "--");
-  setText("header-points-badge", currentPoints !== null ? `${format(currentPoints)} pts` : "--");
-  setText("insights-wallet", walletBalance !== null ? `${format(walletBalance)} pts` : "--");
-  setText("insights-rank", "--");
+  setText("dash-role", displayValue(p.role, null, "—"));
+  setText("dash-city", displayValue(p.city, null, "—"));
+  setText("dash-wallet", pts(walletBalance));
+  setText("dash-current-points", pts(currentPoints));
+  setText("dash-lifetime-points", pts(lifetimePoints));
+  setText("stat-current", hasProfile ? formatCount(currentPoints) : "0");
+  setText("stat-lifetime", hasProfile ? formatCount(lifetimePoints) : "0");
+  setText("header-points-badge", pts(currentPoints));
+  setText("insights-wallet", pts(walletBalance));
+  setText("insights-rank", "—");
 
-  ["avatar", "profile-avatar", "header-avatar"].forEach((id) => setSrc(id, avatar));
+  ["avatar", "profile-avatar", "header-avatar"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) applyAvatar(el, avatar, name || user.email);
+  });
+
+  const settingsPreview = document.getElementById("settings-photo-preview");
+  if (settingsPreview) applyAvatar(settingsPreview, avatar, name || user.email);
 
   $$("[data-tier]").forEach((el) => {
     if (tier) {
@@ -163,12 +225,15 @@ export function renderUserChrome(user, profile) {
 
   setText(
     "stat-scans",
-    p.totalScans !== undefined && p.totalScans !== null ? format(p.totalScans) : "--"
+    hasProfile ? formatCount(p.totalScans) : "0"
   );
   setText(
     "stat-redeemed",
-    p.rewardsRedeemed !== undefined && p.rewardsRedeemed !== null ? format(p.rewardsRedeemed) : "--"
+    hasProfile ? formatCount(p.rewardsRedeemed) : "0"
   );
+
+  const settingsRole = document.getElementById("settings-role");
+  if (settingsRole) settingsRole.value = p.role || "";
 
   return { ...p, tier, name };
 }
@@ -229,14 +294,22 @@ export function initAppShell(pageId) {
   }
 
   const bottom = $("#app-bottom-nav");
-  if (bottom && !bottom.dataset.builtV3) {
-    bottom.dataset.builtV3 = "1";
-    bottom.innerHTML = bottomNav
-      .map(
-        (n) => `<a href="${n.href}" class="sp-bottom-link${n.scan ? " sp-bottom-scan" : ""}${n.id === pageId ? " active" : ""}" data-nav="${n.id}"${n.scan ? ' aria-label="Scan QR"' : ""}>
-        <i class="fa-solid ${n.icon}" aria-hidden="true"></i><span>${n.label}</span></a>`
-      )
-      .join("");
+  if (bottom && !bottom.dataset.builtV4) {
+    bottom.dataset.builtV4 = "1";
+    const links = bottomNav.filter((n) => !n.scan);
+    const scanItem = bottomNav.find((n) => n.scan);
+    bottom.innerHTML = `
+      <div class="sp-bottom-row">
+        ${links
+          .map(
+            (n, i) => `<a href="${n.href}" class="sp-bottom-link${n.id === pageId ? " active" : ""}" data-nav="${n.id}">
+          <i class="fa-solid ${n.icon}" aria-hidden="true"></i><span>${n.label}</span></a>${i === 1 ? '<span class="sp-bottom-fab-slot" aria-hidden="true"></span>' : ""}`
+          )
+          .join("")}
+      </div>
+      <a href="${scanItem.href}" class="sp-bottom-scan${scanItem.id === pageId ? " active" : ""}" data-nav="${scanItem.id}" aria-label="Scan QR">
+        <i class="fa-solid ${scanItem.icon}" aria-hidden="true"></i>
+      </a>`;
   }
 
   $("#header-notify")?.addEventListener("click", () => {
@@ -252,6 +325,7 @@ export function initAppShell(pageId) {
 
 export function bootProtected(pageId, onReady) {
   initAppShell(pageId);
+  ensureTopbarLayout();
   window.addEventListener("load", () => setTimeout(hideLoader, 500));
 
   const unsubAuth = subscribeAuth(async (user) => {

@@ -37,7 +37,9 @@ export function normalizeProfile(data = {}) {
       : currentPoints;
 
   const tier =
-    data.tier || data.membership || (currentPoints !== null ? getMembership(currentPoints) : null);
+    data.tier || data.membership || (currentPoints !== null ? getMembership(currentPoints) : "Bronze");
+
+  const profileImage = data.profileImage || data.photoURL || data.avatarUrl || "";
 
   return {
     ...data,
@@ -45,10 +47,14 @@ export function normalizeProfile(data = {}) {
     name: data.fullName || data.name || "",
     mobile: data.mobile || data.phone || "",
     phone: data.mobile || data.phone || "",
-    currentPoints,
-    points: currentPoints,
-    lifetimePoints,
-    walletBalance,
+    profileImage,
+    photoURL: profileImage,
+    avatarUrl: profileImage,
+    memberId: data.memberId || "",
+    currentPoints: currentPoints ?? 0,
+    points: currentPoints ?? 0,
+    lifetimePoints: lifetimePoints ?? 0,
+    walletBalance: walletBalance ?? 0,
     tier,
     membership: tier,
     totalScans: Number(data.totalScans ?? data.productsScanned ?? 0),
@@ -56,8 +62,8 @@ export function normalizeProfile(data = {}) {
   };
 }
 
-export function displayValue(value, formatter) {
-  if (value === null || value === undefined || value === "") return "--";
+export function displayValue(value, formatter, fallback = "--") {
+  if (value === null || value === undefined || value === "") return fallback;
   return formatter ? formatter(value) : String(value);
 }
 
@@ -163,27 +169,40 @@ export function validateProfilePhoto(file) {
   }
 }
 
-export async function uploadProfilePhoto(uid, file) {
+export async function uploadProfilePhoto(uid, file, onProgress) {
   validateProfilePhoto(file);
   const { storage, auth } = await import("../firebase.js");
-  const { ref, uploadBytes, getDownloadURL } = await import(
+  const { ref, uploadBytesResumable, getDownloadURL } = await import(
     "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js"
   );
   const { updateProfile } = await import(
     "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js"
   );
 
-  const ext = photoExtension(file);
-  const storageRef = ref(storage, `profile-photos/${uid}.${ext}`);
-  await uploadBytes(storageRef, file, { contentType: file.type });
-  const photoURL = await getDownloadURL(storageRef);
+  const storageRef = ref(storage, `profile-images/${uid}`);
+  const task = uploadBytesResumable(storageRef, file, { contentType: file.type });
 
-  await updateDoc(doc(db, "users", uid), { photoURL, avatarUrl: photoURL });
+  await new Promise((resolve, reject) => {
+    task.on(
+      "state_changed",
+      (snap) => {
+        if (typeof onProgress === "function" && snap.totalBytes) {
+          onProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100));
+        }
+      },
+      reject,
+      resolve
+    );
+  });
+
+  const profileImage = await getDownloadURL(storageRef);
+
+  await updateDoc(doc(db, "users", uid), { profileImage });
   if (auth.currentUser?.uid === uid) {
-    await updateProfile(auth.currentUser, { photoURL });
+    await updateProfile(auth.currentUser, { photoURL: profileImage });
   }
 
-  return photoURL;
+  return profileImage;
 }
 
 export async function removeProfilePhoto(uid) {
@@ -195,15 +214,21 @@ export async function removeProfilePhoto(uid) {
     "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js"
   );
 
+  try {
+    await deleteObject(ref(storage, `profile-images/${uid}`));
+  } catch {
+    /* file may not exist */
+  }
+
   for (const ext of ["jpg", "jpeg", "png", "webp"]) {
     try {
       await deleteObject(ref(storage, `profile-photos/${uid}.${ext}`));
     } catch {
-      /* file may not exist */
+      /* legacy path cleanup */
     }
   }
 
-  await updateDoc(doc(db, "users", uid), { photoURL: "", avatarUrl: "" });
+  await updateDoc(doc(db, "users", uid), { profileImage: "" });
   if (auth.currentUser?.uid === uid) {
     await updateProfile(auth.currentUser, { photoURL: null });
   }

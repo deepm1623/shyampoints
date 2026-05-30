@@ -15,7 +15,7 @@ function renderTransactions(list, target = "#wallet-transactions") {
   if (!el) return;
 
   if (!list.length) {
-    el.innerHTML = emptyState("No activity yet");
+    el.innerHTML = emptyState("No transactions yet");
     return;
   }
 
@@ -93,7 +93,7 @@ function renderInsightsActivity(list) {
   const el = $("#insights-activity");
   if (!el) return;
   if (!list.length) {
-    el.innerHTML = `<p class="muted" style="margin:0;font-size:0.8125rem">No activity yet</p>`;
+    el.innerHTML = `<p class="muted" style="margin:0;font-size:0.8125rem">No transactions yet</p>`;
     return;
   }
   el.innerHTML = list

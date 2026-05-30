@@ -1,4 +1,4 @@
-import { bootProtected, $, applyTheme, confirmLogout, toast, currentProfile } from "./app-core.js";
+import { bootProtected, $, applyTheme, confirmLogout, toast, currentProfile, applyAvatar } from "./app-core.js";
 import {
   updateUserProfile,
   uploadProfilePhoto,
@@ -6,51 +6,68 @@ import {
   validateProfilePhoto,
 } from "./firestore-service.js";
 
-const ACCEPTED = ".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp";
-
 let pageReady = false;
 let pendingPhoto = null;
+let savedSnapshot = null;
 
 bootProtected("settings", (user, profile) => {
   const nameInput = $("#settings-name");
   const phoneInput = $("#settings-phone");
   const cityInput = $("#settings-city");
+  const roleInput = $("#settings-role");
   const photoInput = $("#settings-photo-input");
   const photoPreview = $("#settings-photo-preview");
   const photoUploadBtn = $("#settings-photo-upload");
   const photoRemoveBtn = $("#settings-photo-remove");
-  const saveBtn = $("#save-settings");
+  const saveBtn = $("#settings-save");
+  const cancelBtn = $("#settings-cancel");
   const photoStatus = $("#settings-photo-status");
+  const progressWrap = $("#upload-progress");
+  const progressBar = $("#upload-progress-bar");
+  const progressText = $("#upload-progress-text");
 
-  function setPhotoPreview(url) {
-    if (!photoPreview) return;
-    if (url) {
-      photoPreview.src = url;
-      photoPreview.classList.remove("avatar-placeholder");
-    } else {
-      photoPreview.removeAttribute("src");
-      photoPreview.classList.add("avatar-placeholder");
+  function setProgress(pct) {
+    if (progressWrap) progressWrap.hidden = false;
+    if (progressBar) progressBar.style.width = `${pct}%`;
+    if (progressText) progressText.textContent = `${pct}%`;
+    if (pct >= 100) {
+      setTimeout(() => {
+        if (progressWrap) progressWrap.hidden = true;
+        if (progressBar) progressBar.style.width = "0%";
+      }, 600);
     }
   }
 
-  function setPhotoLoading(on) {
+  function setBusy(on) {
     $("#settings-photo-wrap")?.classList.toggle("is-uploading", on);
     if (photoUploadBtn) photoUploadBtn.disabled = on;
     if (photoRemoveBtn) photoRemoveBtn.disabled = on;
     if (saveBtn) saveBtn.disabled = on;
-    if (photoStatus) photoStatus.textContent = on ? "Uploading photo…" : "";
+    if (cancelBtn) cancelBtn.disabled = on;
+  }
+
+  function snapshot(p) {
+    return {
+      fullName: p?.fullName || p?.name || "",
+      mobile: p?.mobile || p?.phone || "",
+      city: p?.city || "",
+      profileImage: p?.profileImage || p?.photoURL || p?.avatarUrl || user.photoURL || "",
+    };
   }
 
   function fillForm(p) {
-    if (nameInput) nameInput.value = p?.fullName || p?.name || "";
-    if (phoneInput) phoneInput.value = p?.mobile || p?.phone || "";
-    if (cityInput) cityInput.value = p?.city || "";
-    if (!pendingPhoto) {
-      setPhotoPreview(p?.photoURL || p?.avatarUrl || user.photoURL || "");
+    const data = snapshot(p || {});
+    if (nameInput) nameInput.value = data.fullName;
+    if (phoneInput) phoneInput.value = data.mobile;
+    if (cityInput) cityInput.value = data.city;
+    if (roleInput) roleInput.value = p?.role || "";
+    if (!pendingPhoto && photoPreview) {
+      applyAvatar(photoPreview, data.profileImage, data.fullName || user.email);
     }
     if (photoRemoveBtn) {
-      photoRemoveBtn.hidden = !(p?.photoURL || p?.avatarUrl || user.photoURL || pendingPhoto);
+      photoRemoveBtn.hidden = !(data.profileImage || pendingPhoto);
     }
+    savedSnapshot = data;
   }
 
   fillForm(profile);
@@ -70,19 +87,39 @@ bootProtected("settings", (user, profile) => {
 
   photoUploadBtn?.addEventListener("click", () => photoInput?.click());
 
-  photoInput?.addEventListener("change", () => {
+  photoInput?.addEventListener("change", async () => {
     const file = photoInput.files?.[0];
     if (!file) return;
+
     try {
       validateProfilePhoto(file);
-      pendingPhoto = file;
-      setPhotoPreview(URL.createObjectURL(file));
-      if (photoRemoveBtn) photoRemoveBtn.hidden = false;
-      toast("Photo selected — tap Save changes to upload", "success");
     } catch (err) {
-      pendingPhoto = null;
       photoInput.value = "";
       toast(err.message || "Invalid image", "error");
+      return;
+    }
+
+    pendingPhoto = file;
+    applyAvatar(photoPreview, URL.createObjectURL(file), nameInput?.value || user.displayName);
+    if (photoRemoveBtn) photoRemoveBtn.hidden = false;
+
+    setBusy(true);
+    if (photoStatus) photoStatus.textContent = "Uploading…";
+
+    try {
+      await uploadProfilePhoto(user.uid, file, setProgress);
+      pendingPhoto = null;
+      photoInput.value = "";
+      if (photoStatus) photoStatus.textContent = "";
+      toast("Profile photo uploaded", "success");
+    } catch (err) {
+      console.error(err);
+      pendingPhoto = null;
+      photoInput.value = "";
+      fillForm(currentProfile || profile);
+      toast(err.message || "Upload failed. Check Storage rules.", "error");
+    } finally {
+      setBusy(false);
     }
   });
 
@@ -91,25 +128,32 @@ bootProtected("settings", (user, profile) => {
     if (photoInput) photoInput.value = "";
 
     const p = currentProfile || profile;
-    const hasStored = p?.photoURL || p?.avatarUrl || user.photoURL;
+    const hasStored = p?.profileImage || p?.photoURL || p?.avatarUrl || user.photoURL;
     if (!hasStored) {
-      setPhotoPreview("");
+      applyAvatar(photoPreview, "", nameInput?.value || user.email);
       if (photoRemoveBtn) photoRemoveBtn.hidden = true;
       return;
     }
 
-    setPhotoLoading(true);
+    setBusy(true);
     try {
       await removeProfilePhoto(user.uid);
-      setPhotoPreview("");
+      applyAvatar(photoPreview, "", nameInput?.value || user.email);
       if (photoRemoveBtn) photoRemoveBtn.hidden = true;
       toast("Profile photo removed", "success");
     } catch (err) {
       console.error(err);
       toast("Could not remove photo", "error");
     } finally {
-      setPhotoLoading(false);
+      setBusy(false);
     }
+  });
+
+  cancelBtn?.addEventListener("click", () => {
+    pendingPhoto = null;
+    if (photoInput) photoInput.value = "";
+    fillForm(currentProfile || profile);
+    toast("Changes discarded", "success");
   });
 
   saveBtn?.addEventListener("click", async () => {
@@ -117,26 +161,21 @@ bootProtected("settings", (user, profile) => {
     const mobile = phoneInput?.value.trim() || "";
     const city = cityInput?.value.trim() || "";
 
-    setPhotoLoading(true);
+    if (fullName.length < 2) {
+      toast("Enter a valid full name", "error");
+      return;
+    }
+
+    setBusy(true);
     try {
-      if (pendingPhoto) {
-        await uploadProfilePhoto(user.uid, pendingPhoto);
-        pendingPhoto = null;
-        if (photoInput) photoInput.value = "";
-      }
-
-      await updateUserProfile(user.uid, {
-        ...(fullName ? { fullName } : {}),
-        mobile,
-        city,
-      });
-
+      await updateUserProfile(user.uid, { fullName, mobile, city });
       toast("Settings saved", "success");
+      savedSnapshot = { fullName, mobile, city, profileImage: savedSnapshot?.profileImage || "" };
     } catch (err) {
       console.error(err);
       toast(err.message || "Could not save settings", "error");
     } finally {
-      setPhotoLoading(false);
+      setBusy(false);
     }
   });
 
