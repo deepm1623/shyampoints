@@ -132,6 +132,83 @@ export async function updateUserProfile(uid, fields) {
   await updateDoc(doc(db, "users", uid), payload);
 }
 
+const PHOTO_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+
+function photoExtension(file) {
+  const map = {
+    "image/jpeg": "jpg",
+    "image/jpg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+  };
+  return map[file.type] || "jpg";
+}
+
+export function validateProfilePhoto(file) {
+  if (!file) {
+    const err = new Error("No file selected");
+    err.code = "photo-missing";
+    throw err;
+  }
+  if (!PHOTO_TYPES.has(file.type)) {
+    const err = new Error("Use JPG, PNG, or WEBP");
+    err.code = "photo-type";
+    throw err;
+  }
+  if (file.size > MAX_PHOTO_BYTES) {
+    const err = new Error("Image must be 5 MB or smaller");
+    err.code = "photo-size";
+    throw err;
+  }
+}
+
+export async function uploadProfilePhoto(uid, file) {
+  validateProfilePhoto(file);
+  const { storage, auth } = await import("../firebase.js");
+  const { ref, uploadBytes, getDownloadURL } = await import(
+    "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js"
+  );
+  const { updateProfile } = await import(
+    "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js"
+  );
+
+  const ext = photoExtension(file);
+  const storageRef = ref(storage, `profile-photos/${uid}.${ext}`);
+  await uploadBytes(storageRef, file, { contentType: file.type });
+  const photoURL = await getDownloadURL(storageRef);
+
+  await updateDoc(doc(db, "users", uid), { photoURL, avatarUrl: photoURL });
+  if (auth.currentUser?.uid === uid) {
+    await updateProfile(auth.currentUser, { photoURL });
+  }
+
+  return photoURL;
+}
+
+export async function removeProfilePhoto(uid) {
+  const { storage, auth } = await import("../firebase.js");
+  const { ref, deleteObject } = await import(
+    "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js"
+  );
+  const { updateProfile } = await import(
+    "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js"
+  );
+
+  for (const ext of ["jpg", "jpeg", "png", "webp"]) {
+    try {
+      await deleteObject(ref(storage, `profile-photos/${uid}.${ext}`));
+    } catch {
+      /* file may not exist */
+    }
+  }
+
+  await updateDoc(doc(db, "users", uid), { photoURL: "", avatarUrl: "" });
+  if (auth.currentUser?.uid === uid) {
+    await updateProfile(auth.currentUser, { photoURL: null });
+  }
+}
+
 export async function markNotificationRead(notifId) {
   await updateDoc(doc(db, "notifications", notifId), { read: true });
 }

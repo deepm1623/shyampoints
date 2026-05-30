@@ -39,13 +39,21 @@
             <p>Point your camera at a verified Shyam Sanitaries product code</p>
           </div>
           <div class="scanner-premium">
-            <div class="scanner-frame-premium">
+            <div id="scanner-frame" class="scanner-frame-premium">
+              <div id="scanner-loading" class="scanner-loading">
+                <div class="sp-loader-ring"></div>
+                <p>Starting camera…</p>
+              </div>
               <div id="qr-reader" class="qr-reader-mount" aria-label="QR scanner"></div>
             </div>
-            <p id="scanner-status" class="muted" style="text-align:center;margin-top:12px">Starting camera…</p>
+            <p id="scanner-status" class="scanner-status-text">Preparing scanner…</p>
+            <div class="scanner-result-card">
+              <small>Last scanned code</small>
+              <strong id="last-scanned-code">—</strong>
+            </div>
             <div class="scanner-toolbar">
-              <button type="button" class="sp-btn sp-btn-ghost sp-btn-sm" disabled title="Requires device support"><i class="fa-solid fa-lightbulb"></i> Torch</button>
-              <button type="button" class="sp-btn sp-btn-ghost sp-btn-sm" disabled title="Use system camera switch"><i class="fa-solid fa-camera-rotate"></i> Switch camera</button>
+              <button type="button" class="sp-btn sp-btn-ghost sp-btn-sm" id="torch-btn" aria-pressed="false"><i class="fa-solid fa-lightbulb"></i> Torch</button>
+              <button type="button" class="sp-btn sp-btn-ghost sp-btn-sm" id="switch-camera-btn"><i class="fa-solid fa-camera-rotate"></i> Switch camera</button>
             </div>
             <div class="scanner-instructions">
               <h4>How to scan</h4>

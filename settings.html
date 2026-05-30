@@ -40,9 +40,19 @@
           </div>
           <div class="settings-premium">
             <section class="settings-card">
-              <h3>Profile</h3>
+              <h3>Profile settings</h3>
+              <div id="settings-photo-wrap" class="settings-photo-wrap">
+                <img id="settings-photo-preview" class="settings-photo-preview avatar-placeholder" alt="Profile preview" width="96" height="96" />
+                <div class="settings-photo-actions">
+                  <input type="file" id="settings-photo-input" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden />
+                  <button type="button" class="sp-btn sp-btn-soft sp-btn-sm" id="settings-photo-upload"><i class="fa-solid fa-upload"></i> Upload photo</button>
+                  <button type="button" class="sp-btn sp-btn-ghost sp-btn-sm" id="settings-photo-remove" hidden><i class="fa-solid fa-trash"></i> Remove</button>
+                </div>
+                <p id="settings-photo-status" class="settings-photo-status" aria-live="polite"></p>
+                <p class="settings-photo-hint">JPG, PNG, or WEBP · Max 5 MB</p>
+              </div>
               <label class="settings-field" for="settings-name"><span>Full name</span><input id="settings-name" type="text" autocomplete="name" /></label>
-              <label class="settings-field" for="settings-phone"><span>Mobile</span><input id="settings-phone" type="tel" autocomplete="tel" /></label>
+              <label class="settings-field" for="settings-phone"><span>Mobile number</span><input id="settings-phone" type="tel" autocomplete="tel" /></label>
               <label class="settings-field" for="settings-city"><span>City</span><input id="settings-city" type="text" autocomplete="address-level2" /></label>
               <button type="button" class="sp-btn sp-btn-primary sp-btn-full" id="save-settings">Save changes</button>
             </section>

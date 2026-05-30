@@ -1,15 +1,40 @@
 import { Html5Qrcode } from "https://unpkg.com/html5-qrcode@2.3.8/esm/html5-qrcode.js";
-import { bootProtected, $, emptyState } from "./app-core.js";
+import { bootProtected, $, emptyState, toast } from "./app-core.js";
 import { processQrScan, subscribeTransactions, formatTimestamp } from "./firestore-service.js";
 
 let scanner = null;
 let scanning = false;
 let scanUser = null;
 let txUnsub = null;
+let cameras = [];
+let currentCameraIndex = 0;
+let torchOn = false;
+let torchSupported = false;
 
-function showSuccess(points) {
+function setStatus(text) {
+  const el = $("#scanner-status");
+  if (el) el.textContent = text;
+}
+
+function setLoading(on) {
+  $("#scanner-loading")?.classList.toggle("hidden", !on);
+}
+
+function setLastScanned(code) {
+  const el = $("#last-scanned-code");
+  if (el) el.textContent = code || "—";
+}
+
+function flashSuccess() {
+  $("#scanner-frame")?.classList.add("scan-success-flash");
+  setTimeout(() => $("#scanner-frame")?.classList.remove("scan-success-flash"), 1200);
+}
+
+function showSuccess(points, qrId) {
   $("#scan-points-number").textContent = points;
   $("#scan-points-text").textContent = `You earned ${points} points!`;
+  if (qrId) setLastScanned(qrId);
+  flashSuccess();
   $("#scan-success-modal")?.classList.remove("hidden");
 }
 
@@ -19,9 +44,41 @@ function showError(message) {
   $("#scan-error-modal")?.classList.remove("hidden");
 }
 
+function updateTorchButton() {
+  const btn = $("#torch-btn");
+  if (!btn) return;
+  btn.disabled = !torchSupported || !scanner;
+  btn.classList.toggle("active", torchOn);
+  btn.setAttribute("aria-pressed", torchOn ? "true" : "false");
+}
+
+function updateSwitchButton() {
+  const btn = $("#switch-camera-btn");
+  if (!btn) return;
+  btn.disabled = cameras.length < 2 || !scanner;
+}
+
+async function applyTorch(on) {
+  if (!scanner || !torchSupported) return;
+  try {
+    await scanner.applyVideoConstraints({ advanced: [{ torch: on }] });
+    torchOn = on;
+    updateTorchButton();
+  } catch (err) {
+    console.warn("Torch error:", err);
+    toast("Torch not available on this device", "error");
+  }
+}
+
 async function handleScan(decodedText) {
   if (!scanUser || scanning) return;
+  const code = String(decodedText || "").trim();
+  if (!code) return;
+
   scanning = true;
+  setLastScanned(code);
+  setStatus("Verifying QR code…");
+  setLoading(true);
 
   try {
     await scanner?.pause(true);
@@ -30,49 +87,100 @@ async function handleScan(decodedText) {
   }
 
   try {
-    const result = await processQrScan(scanUser.uid, decodedText);
-    showSuccess(result.points);
+    const result = await processQrScan(scanUser.uid, code);
+    showSuccess(result.points, result.qrId || code);
+    setStatus("Scan successful!");
   } catch (err) {
-    const code = err?.code;
-    if (code === "qr-invalid") showError("Invalid QR Code");
-    else if (code === "qr-used") showError("QR already redeemed");
+    const errorCode = err?.code;
+    if (errorCode === "qr-invalid") showError("Invalid QR Code");
+    else if (errorCode === "qr-used") showError("QR already redeemed");
     else showError(err?.message || "Scan failed. Try again.");
+    setStatus("Align QR code within the frame.");
   } finally {
     scanning = false;
+    setLoading(false);
   }
 }
 
+async function startWithCamera(cameraId) {
+  scanner = new Html5Qrcode("qr-reader");
+  await scanner.start(
+    cameraId,
+    { fps: 12, qrbox: (w, h) => ({ width: Math.min(280, w * 0.75), height: Math.min(280, h * 0.75) }) },
+    (text) => handleScan(text),
+    () => {}
+  );
+
+  try {
+    const caps = scanner.getRunningTrackCapabilities?.() || {};
+    torchSupported = Boolean(caps.torch);
+  } catch {
+    torchSupported = false;
+  }
+
+  torchOn = false;
+  updateTorchButton();
+  updateSwitchButton();
+  setStatus("Align QR code within the frame.");
+}
+
 async function startScanner() {
-  const status = $("#scanner-status");
   if (!$("#qr-reader")) return;
 
   if (!window.isSecureContext && location.hostname !== "localhost") {
-    if (status) status.textContent = "Camera requires HTTPS or localhost.";
+    setStatus("Camera requires HTTPS or localhost.");
     return;
   }
 
+  if (!navigator.mediaDevices?.getUserMedia) {
+    setStatus("Camera is not supported in this browser.");
+    return;
+  }
+
+  setLoading(true);
+  setStatus("Requesting camera access…");
+
   try {
-    scanner = new Html5Qrcode("qr-reader");
-    const cameras = await Html5Qrcode.getCameras();
+    cameras = await Html5Qrcode.getCameras();
     if (!cameras?.length) {
-      if (status) status.textContent = "No camera found on this device.";
+      setStatus("No camera found on this device.");
       return;
     }
 
-    const back = cameras.find((c) => /back|rear|environment/i.test(c.label));
-    const cameraId = back?.id || cameras[cameras.length - 1].id;
+    const backIdx = cameras.findIndex((c) => /back|rear|environment/i.test(c.label || ""));
+    currentCameraIndex = backIdx >= 0 ? backIdx : cameras.length - 1;
 
-    await scanner.start(
-      cameraId,
-      { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1 },
-      (text) => handleScan(text),
-      () => {}
-    );
-
-    if (status) status.textContent = "Align QR code within the frame.";
+    await startWithCamera(cameras[currentCameraIndex].id);
   } catch (err) {
     console.error(err);
-    if (status) status.textContent = "Camera access denied or unavailable.";
+    if (err?.name === "NotAllowedError") {
+      setStatus("Camera permission denied. Allow access in browser settings.");
+    } else if (err?.name === "NotFoundError") {
+      setStatus("No camera found on this device.");
+    } else {
+      setStatus("Camera unavailable. Please try again.");
+    }
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function switchCamera() {
+  if (cameras.length < 2) return;
+  setLoading(true);
+  torchOn = false;
+
+  try {
+    await stopScanner();
+    currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
+    await startWithCamera(cameras[currentCameraIndex].id);
+    setStatus(`Switched to ${cameras[currentCameraIndex].label || "camera " + (currentCameraIndex + 1)}`);
+  } catch (err) {
+    console.error(err);
+    setStatus("Could not switch camera.");
+    await startScanner();
+  } finally {
+    setLoading(false);
   }
 }
 
@@ -84,6 +192,10 @@ async function stopScanner() {
     /* ignore */
   }
   scanner = null;
+  torchSupported = false;
+  torchOn = false;
+  updateTorchButton();
+  updateSwitchButton();
 }
 
 function renderRecentScans(list) {
@@ -107,17 +219,20 @@ function renderRecentScans(list) {
     .join("");
 }
 
+let pageReady = false;
+
 bootProtected("scanner", (user) => {
   scanUser = user;
+  if (pageReady) return;
+  pageReady = true;
+
   startScanner();
   window.addEventListener("pagehide", stopScanner);
 
-  txUnsub = subscribeTransactions(
-    user.uid,
-    renderRecentScans,
-    () => {},
-    15
-  );
+  txUnsub = subscribeTransactions(user.uid, renderRecentScans, () => {}, 15);
+
+  $("#torch-btn")?.addEventListener("click", () => applyTorch(!torchOn));
+  $("#switch-camera-btn")?.addEventListener("click", switchCamera);
 
   $("#scan-ok")?.addEventListener("click", () => {
     $("#scan-success-modal")?.classList.add("hidden");
@@ -127,10 +242,11 @@ bootProtected("scanner", (user) => {
   $("#scan-error-ok")?.addEventListener("click", async () => {
     $("#scan-error-modal")?.classList.add("hidden");
     scanning = false;
+    setStatus("Align QR code within the frame.");
     try {
       await scanner?.resume();
     } catch {
-      /* ignore */
+      await startScanner();
     }
   });
 });

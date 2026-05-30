@@ -97,7 +97,7 @@ export function renderUserChrome(user, profile) {
   const lifetimePoints = p.lifetimePoints;
   const walletBalance = p.walletBalance;
   const tier = p.tier || (currentPoints !== null ? getMembership(currentPoints) : null);
-  const avatar = user.photoURL || "";
+  const avatar = p.photoURL || p.avatarUrl || user.photoURL || "";
 
   if (name) {
     setText("welcome-name", name.split(" ")[0]);
@@ -189,8 +189,8 @@ export function initAppShell(pageId) {
 
   const bottomNav = [
     { id: "dashboard", href: "dashboard.html", icon: "fa-house", label: "Home" },
-    { id: "scanner", href: "scanner.html", icon: "fa-qrcode", label: "Scan", scan: true },
     { id: "rewards", href: "rewards.html", icon: "fa-gift", label: "Rewards" },
+    { id: "scanner", href: "scanner.html", icon: "fa-qrcode", label: "Scan", scan: true },
     { id: "history", href: "history.html", icon: "fa-clock-rotate-left", label: "History" },
     { id: "profile", href: "profile.html", icon: "fa-user", label: "Profile" },
   ];
@@ -229,11 +229,11 @@ export function initAppShell(pageId) {
   }
 
   const bottom = $("#app-bottom-nav");
-  if (bottom && !bottom.dataset.builtV2) {
-    bottom.dataset.builtV2 = "1";
+  if (bottom && !bottom.dataset.builtV3) {
+    bottom.dataset.builtV3 = "1";
     bottom.innerHTML = bottomNav
       .map(
-        (n) => `<a href="${n.href}" class="sp-bottom-link${n.scan ? " sp-bottom-scan" : ""}${n.id === pageId ? " active" : ""}" data-nav="${n.id}">
+        (n) => `<a href="${n.href}" class="sp-bottom-link${n.scan ? " sp-bottom-scan" : ""}${n.id === pageId ? " active" : ""}" data-nav="${n.id}"${n.scan ? ' aria-label="Scan QR"' : ""}>
         <i class="fa-solid ${n.icon}" aria-hidden="true"></i><span>${n.label}</span></a>`
       )
       .join("");

@@ -19,6 +19,9 @@ import {
   getDoc,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import {
+  getStorage,
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDEC9Ki4rZWl86DjoClWU1zipeLZzN2GGI",
@@ -32,6 +35,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 const provider = new GoogleAuthProvider();
 
 const persistenceReady = setPersistence(auth, browserLocalPersistence).catch((err) => {
@@ -163,4 +167,4 @@ export function subscribeAuth(cb) {
   return onAuthStateChanged(auth, cb);
 }
 
-export { app, auth, db };
+export { app, auth, db, storage };
