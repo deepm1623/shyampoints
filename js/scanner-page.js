@@ -1,59 +1,138 @@
-import { bootProtected, $, creditScanPoints, toast } from "./app-core.js";
+import { Html5Qrcode } from "https://unpkg.com/html5-qrcode@2.3.8/esm/html5-qrcode.js";
+import { bootProtected, $, emptyState } from "./app-core.js";
+import { processQrScan, subscribeTransactions, formatTimestamp } from "./firestore-service.js";
 
-let pendingPoints = 0;
-let stream = null;
+let scanner = null;
+let scanning = false;
+let scanUser = null;
+let txUnsub = null;
 
-async function startCamera() {
-  const video = $("#scan-video");
+function showSuccess(points) {
+  $("#scan-points-number").textContent = points;
+  $("#scan-points-text").textContent = `You earned ${points} points!`;
+  $("#scan-success-modal")?.classList.remove("hidden");
+}
+
+function showError(message) {
+  const el = $("#scan-error-text");
+  if (el) el.textContent = message;
+  $("#scan-error-modal")?.classList.remove("hidden");
+}
+
+async function handleScan(decodedText) {
+  if (!scanUser || scanning) return;
+  scanning = true;
+
+  try {
+    await scanner?.pause(true);
+  } catch {
+    /* ignore */
+  }
+
+  try {
+    const result = await processQrScan(scanUser.uid, decodedText);
+    showSuccess(result.points);
+  } catch (err) {
+    const code = err?.code;
+    if (code === "qr-invalid") showError("Invalid QR Code");
+    else if (code === "qr-used") showError("QR already redeemed");
+    else showError(err?.message || "Scan failed. Try again.");
+  } finally {
+    scanning = false;
+  }
+}
+
+async function startScanner() {
   const status = $("#scanner-status");
-  if (!navigator.mediaDevices?.getUserMedia) {
-    if (status) status.textContent = "Camera not supported. Use Simulate Scan.";
+  if (!$("#qr-reader")) return;
+
+  if (!window.isSecureContext && location.hostname !== "localhost") {
+    if (status) status.textContent = "Camera requires HTTPS or localhost.";
     return;
   }
+
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" } },
-    });
-    if (video) {
-      video.srcObject = stream;
-      await video.play();
+    scanner = new Html5Qrcode("qr-reader");
+    const cameras = await Html5Qrcode.getCameras();
+    if (!cameras?.length) {
+      if (status) status.textContent = "No camera found on this device.";
+      return;
     }
+
+    const back = cameras.find((c) => /back|rear|environment/i.test(c.label));
+    const cameraId = back?.id || cameras[cameras.length - 1].id;
+
+    await scanner.start(
+      cameraId,
+      { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1 },
+      (text) => handleScan(text),
+      () => {}
+    );
+
     if (status) status.textContent = "Align QR code within the frame.";
-  } catch {
-    if (status) status.textContent = "Camera permission denied. Use Simulate Scan.";
+  } catch (err) {
+    console.error(err);
+    if (status) status.textContent = "Camera access denied or unavailable.";
   }
 }
 
-function stopCamera() {
-  stream?.getTracks().forEach((t) => t.stop());
-  stream = null;
+async function stopScanner() {
+  try {
+    if (scanner?.isScanning) await scanner.stop();
+    scanner?.clear();
+  } catch {
+    /* ignore */
+  }
+  scanner = null;
 }
 
-bootProtected("scanner", () => {
-  startCamera();
-  window.addEventListener("pagehide", stopCamera);
+function renderRecentScans(list) {
+  const el = $("#recent-scans-list");
+  if (!el) return;
+  const scans = list.filter((t) => t.type === "scan");
+  if (!scans.length) {
+    el.innerHTML = emptyState("No scans yet");
+    return;
+  }
+  el.innerHTML = scans
+    .slice(0, 5)
+    .map((tx) => {
+      const { relative } = formatTimestamp(tx.createdAt);
+      return `<article class="list-item">
+        <div class="logo-pill">📱</div>
+        <div class="item-meta"><h5>${tx.description || "QR Scan"}</h5><p>${relative}</p></div>
+        <strong class="item-score">+${Number(tx.points) || 0}</strong>
+      </article>`;
+    })
+    .join("");
+}
 
-  $("#simulate-scan")?.addEventListener("click", () => {
-    pendingPoints = Math.floor(Math.random() * 80) + 1;
-    $("#scan-points-number").textContent = pendingPoints;
-    $("#scan-points-text").textContent = `You won ${pendingPoints} points!`;
-    $("#scan-success-modal").classList.remove("hidden");
-  });
+bootProtected("scanner", (user) => {
+  scanUser = user;
+  startScanner();
+  window.addEventListener("pagehide", stopScanner);
 
-  $("#toggle-flash")?.addEventListener("click", () => {
-    toast("Flashlight requires device torch API (demo)", "error");
-  });
+  txUnsub = subscribeTransactions(
+    user.uid,
+    renderRecentScans,
+    () => {},
+    15
+  );
 
-  $("#scan-ok")?.addEventListener("click", async () => {
-    if (pendingPoints) {
-      await creditScanPoints(pendingPoints);
-      pendingPoints = 0;
-    }
-    $("#scan-success-modal").classList.add("hidden");
+  $("#scan-ok")?.addEventListener("click", () => {
+    $("#scan-success-modal")?.classList.add("hidden");
     location.href = "dashboard.html";
   });
 
-  $("#scan-error-ok")?.addEventListener("click", () => {
-    $("#scan-error-modal").classList.add("hidden");
+  $("#scan-error-ok")?.addEventListener("click", async () => {
+    $("#scan-error-modal")?.classList.add("hidden");
+    scanning = false;
+    try {
+      await scanner?.resume();
+    } catch {
+      /* ignore */
+    }
   });
 });
+
+window.addEventListener("pagehide", () => txUnsub?.());

@@ -7,45 +7,49 @@
     <link rel="icon" href="favicon.ico?v=1" sizes="any" />
     <link rel="shortcut icon" href="favicon.ico?v=1" />
     <link rel="apple-touch-icon" href="favicon.ico?v=1" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
     <link rel="stylesheet" href="design-system.css" />
     <link rel="stylesheet" href="app.css" />
   </head>
-  <body class="app-body dashboard-layout">
+  <body class="app-body sp-app dashboard-layout">
     <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div></div>
     <div class="app-bg" aria-hidden="true"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
     <div id="toast-wrap" class="app-toast-wrap"></div>
-    <aside id="app-sidebar" class="sidebar app-sidebar"></aside>
-    <div class="main-content">
-      <div class="page-content">
-      <header class="app-header">
-        <div><h1>Rewards</h1><p>Redeem your points for premium rewards</p></div>
-        <div class="header-actions">
-          <button type="button" class="header-icon-btn" id="header-notify" aria-label="Notifications"><i class="fa-solid fa-bell"></i></button>
-          <img id="header-avatar" class="header-avatar" alt="" width="44" height="44" />
+    <aside id="app-sidebar" class="sp-sidebar"></aside>
+    <div class="sp-shell">
+      <header class="sp-topbar">
+        <div class="sp-topbar-left">
+          <p class="sp-greeting">Hello <span id="welcome-name">--</span> 👋</p>
+          <p class="sp-topbar-meta"><span data-tier class="sp-pill">--</span> · <span id="hero-id">--</span></p>
+        </div>
+        <div class="sp-topbar-center">
+          <label class="sp-search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" id="reward-search" placeholder="Search rewards…" aria-label="Search rewards" /></label>
+        </div>
+        <div class="sp-topbar-right">
+          <button type="button" class="sp-icon-btn" id="header-notify" aria-label="Notifications"><i class="fa-solid fa-bell"></i></button>
+          <span id="header-points-badge" class="sp-points-badge">--</span>
+          <img id="header-avatar" class="sp-avatar header-avatar avatar-placeholder" src="" alt="" width="44" height="44" />
         </div>
       </header>
-      <div class="toolbar-row">
-        <input type="search" id="reward-search" placeholder="Search rewards..." aria-label="Search rewards" />
-        <select id="reward-sort" aria-label="Sort rewards">
-          <option value="points-asc">Points: Low to High</option>
-          <option value="points-desc">Points: High to Low</option>
-          <option value="name">Name A–Z</option>
-        </select>
-      </div>
-      <div class="chips-row" id="reward-filters">
-        <button type="button" class="chip active" data-cat="all">All</button>
-        <button type="button" class="chip" data-cat="Gift Cards">Gift Cards</button>
-        <button type="button" class="chip" data-cat="Cashback">Cashback</button>
-        <button type="button" class="chip" data-cat="Electronics">Electronics</button>
-      </div>
-      <div id="reward-grid" class="reward-grid rewards-grid"></div>
+      <div class="sp-body">
+        <main class="sp-main">
+          <div class="page-title-block" style="margin-bottom:20px">
+            <h1>Rewards</h1>
+            <p>Redeem your points for premium rewards</p>
+          </div>
+          <div class="toolbar-premium">
+            <select id="reward-sort" aria-label="Sort rewards">
+              <option value="points-asc">Points: Low to High</option>
+              <option value="points-desc">Points: High to Low</option>
+              <option value="name">Name A–Z</option>
+            </select>
+          </div>
+          <div id="reward-grid" class="reward-grid"></div>
+        </main>
       </div>
     </div>
-    <nav id="app-bottom-nav" class="app-bottom-nav"></nav>
-    <a href="scanner.html" class="fab-scan" aria-label="Scan"><i class="fa-solid fa-qrcode"></i></a>
-
+    <nav id="app-bottom-nav"></nav>
     <div id="redeem-modal" class="app-modal hidden">
       <div class="modal-panel">
         <h3 id="redeem-title">Confirm redeem</h3>

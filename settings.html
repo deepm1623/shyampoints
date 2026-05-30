@@ -7,54 +7,64 @@
     <link rel="icon" href="favicon.ico?v=1" sizes="any" />
     <link rel="shortcut icon" href="favicon.ico?v=1" />
     <link rel="apple-touch-icon" href="favicon.ico?v=1" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
     <link rel="stylesheet" href="design-system.css" />
     <link rel="stylesheet" href="app.css" />
   </head>
-  <body class="app-body dashboard-layout">
+  <body class="app-body sp-app dashboard-layout">
     <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div></div>
     <div class="app-bg" aria-hidden="true"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
     <div id="toast-wrap" class="app-toast-wrap"></div>
-    <aside id="app-sidebar" class="sidebar app-sidebar"></aside>
-    <div class="main-content">
-      <div class="page-content">
-      <header class="app-header"><div><h1>Settings</h1><p>Customize your experience</p></div></header>
-
-      <div class="settings-group">
-        <div class="settings-row">
-          <span>Dark mode</span>
-          <button type="button" class="toggle" id="theme-toggle" aria-label="Toggle dark mode"></button>
+    <aside id="app-sidebar" class="sp-sidebar"></aside>
+    <div class="sp-shell">
+      <header class="sp-topbar">
+        <div class="sp-topbar-left">
+          <p class="sp-greeting">Hello <span id="welcome-name">--</span> 👋</p>
+          <p class="sp-topbar-meta"><span data-tier class="sp-pill">--</span> · <span id="hero-id">--</span></p>
         </div>
-        <div class="settings-row">
-          <span>Push notifications</span>
-          <button type="button" class="toggle on" id="notif-toggle" aria-label="Toggle notifications"></button>
+        <div class="sp-topbar-center">
+          <label class="sp-search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" placeholder="Search…" aria-label="Search" /></label>
         </div>
-        <div class="settings-row">
-          <span>Email alerts</span>
-          <button type="button" class="toggle on" id="email-toggle" aria-label="Toggle email"></button>
+        <div class="sp-topbar-right">
+          <button type="button" class="sp-icon-btn" id="header-notify" aria-label="Notifications"><i class="fa-solid fa-bell"></i></button>
+          <span id="header-points-badge" class="sp-points-badge">--</span>
+          <img id="header-avatar" class="sp-avatar header-avatar avatar-placeholder" src="" alt="" width="44" height="44" />
         </div>
-      </div>
-
-      <div class="settings-group">
-        <label class="settings-row" for="language-select">
-          <span>Language</span>
-          <select id="language-select" aria-label="Language">
-            <option value="en">English</option>
-            <option value="hi">हिन्दी</option>
-            <option value="gu">ગુજરાતી</option>
-          </select>
-        </label>
-      </div>
-
-      <div class="settings-group">
-        <a href="#" class="settings-row">Privacy policy</a>
-        <a href="#" class="settings-row">Terms of service</a>
-        <button type="button" class="settings-row" id="settings-logout">Logout</button>
-      </div>
+      </header>
+      <div class="sp-body">
+        <main class="sp-main">
+          <div class="page-title-block" style="margin-bottom:20px">
+            <h1>Settings</h1>
+            <p>Profile, security, and preferences</p>
+          </div>
+          <div class="settings-premium">
+            <section class="settings-card">
+              <h3>Profile</h3>
+              <label class="settings-field" for="settings-name"><span>Full name</span><input id="settings-name" type="text" autocomplete="name" /></label>
+              <label class="settings-field" for="settings-phone"><span>Mobile</span><input id="settings-phone" type="tel" autocomplete="tel" /></label>
+              <label class="settings-field" for="settings-city"><span>City</span><input id="settings-city" type="text" autocomplete="address-level2" /></label>
+              <button type="button" class="sp-btn sp-btn-primary sp-btn-full" id="save-settings">Save changes</button>
+            </section>
+            <section class="settings-card">
+              <h3>Preferences</h3>
+              <div class="settings-row">
+                <span>Dark mode</span>
+                <button type="button" class="toggle" id="theme-toggle" aria-label="Toggle dark mode"></button>
+              </div>
+            </section>
+            <section class="settings-card">
+              <h3>Security</h3>
+              <p style="margin:0;color:var(--sp-muted);font-size:0.875rem">Password reset is available from the login page via Forgot password.</p>
+            </section>
+            <section class="settings-card">
+              <button type="button" class="sp-btn sp-btn-ghost sp-btn-full danger-text" id="settings-logout">Logout</button>
+            </section>
+          </div>
+        </main>
       </div>
     </div>
-    <nav id="app-bottom-nav" class="app-bottom-nav"></nav>
+    <nav id="app-bottom-nav"></nav>
     <script type="module" src="js/settings-page.js"></script>
   </body>
 </html>

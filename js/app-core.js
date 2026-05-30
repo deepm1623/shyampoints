@@ -1,25 +1,10 @@
+import { subscribeAuth, logoutUser } from "../firebase.js";
 import {
-  subscribeAuth,
-  getUserProfile,
-  logoutUser,
+  subscribeUserProfile,
+  normalizeProfile,
+  displayValue,
   getMembership,
-} from "../firebase.js";
-import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { getFirestore, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDEC9Ki4rZWl86DjoClWU1zipeLZzN2GGI",
-  authDomain: "shyampoints.firebaseapp.com",
-  projectId: "shyampoints",
-  storageBucket: "shyampoints.firebasestorage.app",
-  messagingSenderId: "884009230588",
-  appId: "1:884009230588:web:2f73257aecd65979fbf779",
-};
-
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+} from "./firestore-service.js";
 
 export const $ = (s, root = document) => root.querySelector(s);
 export const $$ = (s, root = document) => [...root.querySelectorAll(s)];
@@ -27,19 +12,31 @@ export const $$ = (s, root = document) => [...root.querySelectorAll(s)];
 export let currentUser = null;
 export let currentProfile = null;
 
+let profileUnsub = null;
+
 const PROTECTED = new Set([
-  "dashboard", "profile", "rewards", "history", "scanner", "notifications", "settings",
+  "dashboard",
+  "profile",
+  "rewards",
+  "history",
+  "scanner",
+  "notifications",
+  "settings",
 ]);
 
 export function format(n) {
-  return new Intl.NumberFormat("en-IN").format(Math.round(Number(n) || 0));
+  if (n === null || n === undefined || Number.isNaN(Number(n))) return "--";
+  return new Intl.NumberFormat("en-IN").format(Math.round(Number(n)));
 }
 
 export function membershipProgress(points, tier) {
+  if (points === null || tier === null) return { percent: 0, next: "No tier data available" };
   if (tier === "Platinum") return { percent: 100, next: "Top tier unlocked" };
-  if (tier === "Gold") return { percent: ((points - 1500) / 3500) * 100, next: `${format(5000 - points)} pts to Platinum` };
-  if (tier === "Silver") return { percent: ((points - 500) / 1000) * 100, next: `${format(1500 - points)} pts to Gold` };
-  return { percent: (points / 500) * 100, next: `${format(500 - points)} pts to Silver` };
+  if (tier === "Gold")
+    return { percent: Math.min(100, ((points - 1500) / 3500) * 100), next: `${format(Math.max(0, 5000 - points))} pts to Platinum` };
+  if (tier === "Silver")
+    return { percent: Math.min(100, ((points - 500) / 1000) * 100), next: `${format(Math.max(0, 1500 - points))} pts to Gold` };
+  return { percent: Math.min(100, (points / 500) * 100), next: `${format(Math.max(0, 500 - points))} pts to Silver` };
 }
 
 export function toast(message, type = "success") {
@@ -57,19 +54,6 @@ export function toast(message, type = "success") {
   }, 2800);
 }
 
-export function animateCounter(el, target, suffix = "") {
-  if (!el) return;
-  const duration = 900;
-  const t0 = performance.now();
-  function frame(t) {
-    const p = Math.min((t - t0) / duration, 1);
-    const v = Math.floor(target * (1 - Math.pow(1 - p, 3)));
-    el.textContent = format(v) + suffix;
-    if (p < 1) requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-}
-
 export function hideLoader() {
   $("#sp-loader")?.classList.add("hidden");
 }
@@ -79,132 +63,177 @@ export function applyTheme() {
   document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
 }
 
+export function emptyState(message = "No data available") {
+  return `<div class="empty-state" role="status"><i class="fa-solid fa-inbox" aria-hidden="true"></i><p>${message}</p></div>`;
+}
+
+export function skeletonLines(n = 3) {
+  return `<div class="skeleton-block" aria-hidden="true">${Array.from({ length: n })
+    .map(() => '<div class="skeleton-line"></div>')
+    .join("")}</div>`;
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function setSrc(id, src) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (src) {
+    el.src = src;
+    el.classList.remove("avatar-placeholder");
+  } else {
+    el.removeAttribute("src");
+    el.classList.add("avatar-placeholder");
+  }
+}
+
 export function renderUserChrome(user, profile) {
-  const points = Number(profile?.points || 0);
-  const tier = getMembership(points);
-  const name = profile?.name || user.displayName || "Shyam Member";
-  const avatar =
-    user.photoURL ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2563ff&color=fff`;
+  const p = normalizeProfile(profile || {});
+  const name = p.fullName || user.displayName || null;
+  const currentPoints = p.currentPoints;
+  const lifetimePoints = p.lifetimePoints;
+  const walletBalance = p.walletBalance;
+  const tier = p.tier || (currentPoints !== null ? getMembership(currentPoints) : null);
+  const avatar = user.photoURL || "";
 
-  const setText = (id, val) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = val;
-  };
-  const setSrc = (id, src) => {
-    const el = document.getElementById(id);
-    if (el) el.src = src;
-  };
+  if (name) {
+    setText("welcome-name", name.split(" ")[0]);
+    setText("header-user-name", name);
+    setText("profile-name", name);
+  } else {
+    setText("welcome-name", "--");
+    setText("header-user-name", "--");
+    setText("profile-name", "--");
+  }
 
-  setText("welcome-name", name.split(" ")[0]);
-  setText("header-user-name", name);
-  setText("hero-id", `ID · SP-${user.uid.slice(0, 8).toUpperCase()}`);
-  setText("hero-points", `${format(points)} pts`);
-  setText("wallet-points", `${format(points)} pts`);
-  setText("lifetime-points", `${format(points + Number(profile?.rewardsRedeemed || 0) * 120)} pts`);
-  setText("sidebar-points", `${format(points)} pts`);
-  setText("profile-name", name);
-  setText("profile-email", profile?.email || user.email || "—");
-  setText("profile-phone", profile?.phone || "—");
-  setText("profile-city", profile?.city || "—");
-  setText("profile-role", profile?.role || "Plumber");
-  setText("profile-points", `${format(points)} pts`);
-  setText("lb-you", `${format(points)} pts`);
+  setText("hero-id", `Member ID · SP-${user.uid.slice(0, 8).toUpperCase()}`);
+  setText("profile-id", `SP-${user.uid.slice(0, 8).toUpperCase()}`);
+
+  setText("hero-points", currentPoints !== null ? `${format(currentPoints)} pts` : "--");
+  setText("wallet-points", walletBalance !== null ? `${format(walletBalance)} pts` : "--");
+  setText("lifetime-points", lifetimePoints !== null ? `${format(lifetimePoints)} pts` : "--");
+  setText("sidebar-points", walletBalance !== null ? `${format(walletBalance)} pts` : currentPoints !== null ? `${format(currentPoints)} pts` : "--");
+  setText("profile-points", currentPoints !== null ? `${format(currentPoints)} pts` : "--");
+  setText("profile-lifetime", lifetimePoints !== null ? `${format(lifetimePoints)} pts` : "--");
+  setText("profile-wallet", walletBalance !== null ? `${format(walletBalance)} pts` : "--");
+
+  setText("profile-email", displayValue(p.email || user.email));
+  setText("profile-phone", displayValue(p.mobile));
+  setText("profile-city", displayValue(p.city));
+  setText("profile-role", displayValue(p.role));
+
+  setText("dash-role", displayValue(p.role));
+  setText("dash-city", displayValue(p.city));
+  setText("dash-wallet", walletBalance !== null ? `${format(walletBalance)} pts` : "--");
+  setText("dash-current-points", currentPoints !== null ? `${format(currentPoints)} pts` : "--");
+  setText("dash-lifetime-points", lifetimePoints !== null ? `${format(lifetimePoints)} pts` : "--");
+  setText("stat-current", currentPoints !== null ? format(currentPoints) : "--");
+  setText("stat-lifetime", lifetimePoints !== null ? format(lifetimePoints) : "--");
+  setText("header-points-badge", currentPoints !== null ? `${format(currentPoints)} pts` : "--");
+  setText("insights-wallet", walletBalance !== null ? `${format(walletBalance)} pts` : "--");
+  setText("insights-rank", "--");
 
   ["avatar", "profile-avatar", "header-avatar"].forEach((id) => setSrc(id, avatar));
 
   $$("[data-tier]").forEach((el) => {
-    el.textContent = tier;
-    el.className = `sp-badge ${tier.toLowerCase()} ${el.classList.contains("tier-lg") ? "tier-lg" : ""}`.trim();
+    if (tier) {
+      el.textContent = tier;
+      const t = tier.toLowerCase();
+      if (el.classList.contains("sp-pill")) el.className = `sp-pill ${t}`;
+      else el.className = `sp-badge ${t}${el.classList.contains("tier-lg") ? " tier-lg" : ""}`.trim();
+      el.hidden = false;
+    } else {
+      el.textContent = "--";
+      el.hidden = false;
+    }
   });
 
-  const prog = membershipProgress(points, tier);
+  const prog = membershipProgress(currentPoints ?? 0, tier);
+  const progress = currentPoints !== null && tier ? `${Math.min(100, prog.percent)}%` : "0%";
   const bar = $("#hero-progress");
-  if (bar) bar.style.width = `${Math.min(100, prog.percent)}%`;
-  setText("next-tier-text", prog.next);
+  if (bar) bar.style.width = progress;
+  const insightsBar = $("#insights-progress");
+  if (insightsBar) insightsBar.style.width = progress;
+  const nextText = tier ? prog.next : "No tier data available";
+  setText("next-tier-text", nextText);
+  setText("insights-next-tier", nextText);
 
-  animateCounter($("#stat-points"), points);
-  animateCounter($("#stat-scans"), Number(profile?.productsScanned || 12));
-  animateCounter($("#stat-redeemed"), Number(profile?.rewardsRedeemed || 0));
-  animateCounter($("#stat-today"), Math.min(points, 48));
-  const rankEl = $("#stat-rank");
-  if (rankEl) rankEl.textContent = `#${Math.max(1, 500 - Math.floor(points / 10))}`;
+  setText(
+    "stat-scans",
+    p.totalScans !== undefined && p.totalScans !== null ? format(p.totalScans) : "--"
+  );
+  setText(
+    "stat-redeemed",
+    p.rewardsRedeemed !== undefined && p.rewardsRedeemed !== null ? format(p.rewardsRedeemed) : "--"
+  );
 
-  return { points, tier, name };
-}
-
-export async function redeemReward(reward, pts) {
-  if (!currentUser) return false;
-  const points = Number(currentProfile?.points || 0);
-  if (points < pts) {
-    toast("Not enough points for this reward", "error");
-    return false;
-  }
-  await updateDoc(doc(db, "users", currentUser.uid), {
-    points: points - pts,
-    rewardsRedeemed: increment(1),
-    membership: getMembership(points - pts),
-  });
-  currentProfile = await getUserProfile(currentUser.uid);
-  renderUserChrome(currentUser, currentProfile);
-  toast(`${reward} redeemed successfully`, "success");
-  return true;
-}
-
-export async function creditScanPoints(amount) {
-  if (!currentUser || !amount) return;
-  const base = Number(currentProfile?.points || 0);
-  await updateDoc(doc(db, "users", currentUser.uid), {
-    points: increment(amount),
-    productsScanned: increment(1),
-    membership: getMembership(base + amount),
-  });
-  currentProfile = await getUserProfile(currentUser.uid);
-  renderUserChrome(currentUser, currentProfile);
+  return { ...p, tier, name };
 }
 
 export function initAppShell(pageId) {
   applyTheme();
-  const body = document.body;
-  body.dataset.page = pageId;
+  document.body.dataset.page = pageId;
 
   const navItems = [
-    { id: "dashboard", href: "dashboard.html", icon: "fa-house", label: "Home" },
+    { id: "dashboard", href: "dashboard.html", icon: "fa-house", label: "Dashboard" },
+    { id: "scanner", href: "scanner.html", icon: "fa-qrcode", label: "Scan QR", scan: true },
     { id: "rewards", href: "rewards.html", icon: "fa-gift", label: "Rewards" },
+    { id: "history", href: "history.html", icon: "fa-arrow-right-arrow-left", label: "Transactions" },
+    { id: "notifications", href: "notifications.html", icon: "fa-bell", label: "Notifications" },
+    { id: "profile", href: "profile.html", icon: "fa-user", label: "Profile" },
+    { id: "settings", href: "settings.html", icon: "fa-gear", label: "Settings" },
+  ];
+
+  const bottomNav = [
+    { id: "dashboard", href: "dashboard.html", icon: "fa-house", label: "Home" },
     { id: "scanner", href: "scanner.html", icon: "fa-qrcode", label: "Scan", scan: true },
+    { id: "rewards", href: "rewards.html", icon: "fa-gift", label: "Rewards" },
     { id: "history", href: "history.html", icon: "fa-clock-rotate-left", label: "History" },
     { id: "profile", href: "profile.html", icon: "fa-user", label: "Profile" },
   ];
 
   const sidebar = $("#app-sidebar");
-  if (sidebar && !sidebar.dataset.built) {
-    sidebar.dataset.built = "1";
+  if (sidebar && !sidebar.dataset.builtV2) {
+    sidebar.dataset.builtV2 = "1";
     sidebar.innerHTML = `
-      <a class="sidebar-brand" href="dashboard.html">
-        <img src="shyam points logo.png" alt="" width="40" height="40" />
-        <div><strong>Shyam Points</strong><small>Shyam Sanitaries</small></div>
+      <a class="sp-sidebar-brand" href="dashboard.html">
+        <img src="shyam points logo.png" alt="Shyam Points" width="44" height="44" />
+        <div class="sp-sidebar-brand-text">
+          <strong>Shyam Points</strong>
+          <small>BY SHYAM SANITARIES</small>
+        </div>
       </a>
-      <nav class="sidebar-nav" aria-label="Main">
+      <nav class="sp-sidebar-nav" aria-label="Main navigation">
         ${navItems
           .map(
-            (n) => `<a href="${n.href}" class="sidebar-link${n.id === pageId ? " active" : ""}" data-nav="${n.id}">
-          <i class="fa-solid ${n.icon}" aria-hidden="true"></i><span>${n.label}</span></a>`
+            (n) => `<a href="${n.href}" class="sp-nav-link${n.id === pageId ? " active" : ""}" data-nav="${n.id}">
+          <span class="sp-nav-icon"><i class="fa-solid ${n.icon}" aria-hidden="true"></i></span>
+          <span>${n.label}</span></a>`
           )
           .join("")}
       </nav>
-      <div class="sidebar-foot">
-        <p class="sidebar-points-label">Wallet</p>
-        <p id="sidebar-points" class="sidebar-points-val">0 pts</p>
-        <a href="settings.html" class="sidebar-link"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+      <div class="sp-sidebar-foot">
+        <div class="sp-wallet-chip">
+          <small>Wallet balance</small>
+          <strong id="sidebar-points">--</strong>
+        </div>
+        <button type="button" class="sp-nav-link sp-nav-logout" id="sidebar-logout">
+          <span class="sp-nav-icon"><i class="fa-solid fa-right-from-bracket"></i></span>
+          <span>Logout</span>
+        </button>
       </div>`;
+    $("#sidebar-logout")?.addEventListener("click", () => confirmLogout());
   }
 
   const bottom = $("#app-bottom-nav");
-  if (bottom && !bottom.dataset.built) {
-    bottom.dataset.built = "1";
-    bottom.innerHTML = navItems
+  if (bottom && !bottom.dataset.builtV2) {
+    bottom.dataset.builtV2 = "1";
+    bottom.innerHTML = bottomNav
       .map(
-        (n) => `<a href="${n.href}" class="bottom-link${n.scan ? " bottom-scan" : ""}${n.id === pageId ? " active" : ""}" data-nav="${n.id}">
+        (n) => `<a href="${n.href}" class="sp-bottom-link${n.scan ? " sp-bottom-scan" : ""}${n.id === pageId ? " active" : ""}" data-nav="${n.id}">
         <i class="fa-solid ${n.icon}" aria-hidden="true"></i><span>${n.label}</span></a>`
       )
       .join("");
@@ -216,31 +245,53 @@ export function initAppShell(pageId) {
   $("#header-settings")?.addEventListener("click", () => {
     location.href = "settings.html";
   });
+  $("#header-avatar")?.addEventListener("click", () => {
+    location.href = "profile.html";
+  });
 }
 
 export function bootProtected(pageId, onReady) {
   initAppShell(pageId);
-  window.addEventListener("load", () => setTimeout(hideLoader, 600));
+  window.addEventListener("load", () => setTimeout(hideLoader, 500));
 
-  subscribeAuth(async (user) => {
+  const unsubAuth = subscribeAuth(async (user) => {
     if (!user) {
+      profileUnsub?.();
+      profileUnsub = null;
+      currentUser = null;
+      currentProfile = null;
       if (PROTECTED.has(pageId)) location.href = "login.html";
       return;
     }
+
     currentUser = user;
-    try {
-      currentProfile = await getUserProfile(user.uid);
-      renderUserChrome(user, currentProfile);
-      if (typeof onReady === "function") onReady(user, currentProfile);
-    } catch (err) {
-      console.error(err);
-      toast("Unable to load profile", "error");
-    }
+
+    profileUnsub?.();
+    profileUnsub = subscribeUserProfile(
+      user.uid,
+      (profile) => {
+        currentProfile = profile;
+        renderUserChrome(user, profile);
+        if (typeof onReady === "function") onReady(user, profile);
+        hideLoader();
+      },
+      (err) => {
+        console.error(err);
+        toast("Unable to load profile", "error");
+        hideLoader();
+      }
+    );
   });
+
+  return () => {
+    unsubAuth();
+    profileUnsub?.();
+  };
 }
 
 export async function confirmLogout() {
   try {
+    profileUnsub?.();
     await logoutUser();
     location.href = "login.html";
   } catch {

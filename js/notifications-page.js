@@ -1,21 +1,79 @@
-import { bootProtected, $, toast } from "./app-core.js";
+import { bootProtected, $, $$, toast, emptyState } from "./app-core.js";
+import {
+  subscribeNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+  formatTimestamp,
+} from "./firestore-service.js";
 
-const NOTIFS = [
-  { type: "earn", title: "Points earned", body: "You earned 24 points from AquaFlow Mixer scan.", time: "2h ago" },
-  { type: "redeem", title: "Reward redeemed", body: "UPI Cashback of 220 points processed.", time: "Yesterday" },
-  { type: "offer", title: "New offer", body: "2× Points Weekend — scan this Saturday & Sunday.", time: "2 days ago" },
-  { type: "system", title: "System update", body: "Shyam Points app updated with faster QR scanning.", time: "1 week ago" },
-];
+let notifUnsub = null;
 
-bootProtected("notifications", () => {
-  const list = $("#notifications-list");
-  if (list) {
-    list.innerHTML = NOTIFS.map(
-      (n) => `<article class="notif-card">
-        <div class="notif-icon ${n.type}"><i class="fa-solid fa-${n.type === "earn" ? "coins" : n.type === "redeem" ? "gift" : n.type === "offer" ? "tag" : "circle-info"}"></i></div>
-        <div><h4 style="margin:0 0 4px">${n.title}</h4><p style="margin:0;color:var(--sp-muted);font-size:0.875rem">${n.body}</p><small style="color:var(--sp-muted)">${n.time}</small></div>
-      </article>`
-    ).join("");
+function iconFor(type) {
+  if (type === "earn") return "coins";
+  if (type === "redeem") return "gift";
+  if (type === "offer") return "tag";
+  return "circle-info";
+}
+
+function render(list) {
+  const el = $("#notifications-list");
+  if (!el) return;
+
+  if (!list.length) {
+    el.innerHTML = emptyState("No notifications");
+    return;
   }
-  $("#mark-read")?.addEventListener("click", () => toast("All notifications marked as read", "success"));
+
+  el.innerHTML = list
+    .map(
+      (n) => `<article class="notif-card${n.read ? " read" : " unread"}" data-id="${n.id}">
+        <div class="notif-icon ${n.type || "system"}"><i class="fa-solid fa-${iconFor(n.type)}"></i></div>
+        <div class="notif-body">
+          <h4>${n.title || "Notification"}</h4>
+          <p>${n.body || ""}</p>
+          <small>${formatTimestamp(n.createdAt).relative}</small>
+        </div>
+        ${n.read ? "" : '<span class="unread-dot" aria-label="Unread"></span>'}
+      </article>`
+    )
+    .join("");
+
+  $$(".notif-card").forEach((card) => {
+    card.addEventListener("click", async () => {
+      const id = card.dataset.id;
+      if (!id || card.classList.contains("read")) return;
+      try {
+        await markNotificationRead(id);
+        card.classList.remove("unread");
+        card.querySelector(".unread-dot")?.remove();
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  });
+}
+
+bootProtected("notifications", (user) => {
+  const el = $("#notifications-list");
+  if (el) el.innerHTML = emptyState("Loading…");
+
+  notifUnsub = subscribeNotifications(
+    user.uid,
+    render,
+    () => {
+      if (el) el.innerHTML = emptyState("Unable to load notifications");
+    }
+  );
+
+  $("#mark-read")?.addEventListener("click", async () => {
+    try {
+      await markAllNotificationsRead(user.uid);
+      toast("All notifications marked as read", "success");
+    } catch (err) {
+      console.error(err);
+      toast("Could not update notifications", "error");
+    }
+  });
 });
+
+window.addEventListener("pagehide", () => notifUnsub?.());

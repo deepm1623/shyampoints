@@ -7,39 +7,66 @@
     <link rel="icon" href="favicon.ico?v=1" sizes="any" />
     <link rel="shortcut icon" href="favicon.ico?v=1" />
     <link rel="apple-touch-icon" href="favicon.ico?v=1" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
     <link rel="stylesheet" href="design-system.css" />
     <link rel="stylesheet" href="app.css" />
   </head>
-  <body class="app-body dashboard-layout">
+  <body class="app-body sp-app dashboard-layout">
     <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div></div>
     <div class="app-bg" aria-hidden="true"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
     <div id="toast-wrap" class="app-toast-wrap"></div>
-    <aside id="app-sidebar" class="sidebar app-sidebar"></aside>
-    <div class="main-content">
-      <div class="page-content">
-      <header class="app-header">
-        <div><h1>Scan QR</h1><p>Point camera at product QR code</p></div>
+    <aside id="app-sidebar" class="sp-sidebar"></aside>
+    <div class="sp-shell">
+      <header class="sp-topbar">
+        <div class="sp-topbar-left">
+          <p class="sp-greeting">Hello <span id="welcome-name">--</span> 👋</p>
+          <p class="sp-topbar-meta"><span data-tier class="sp-pill">--</span> · <span id="hero-id">--</span></p>
+        </div>
+        <div class="sp-topbar-center">
+          <label class="sp-search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" placeholder="Search…" aria-label="Search" /></label>
+        </div>
+        <div class="sp-topbar-right">
+          <button type="button" class="sp-icon-btn" id="header-notify" aria-label="Notifications"><i class="fa-solid fa-bell"></i><span id="notify-badge" class="notify-badge" hidden>0</span></button>
+          <span id="header-points-badge" class="sp-points-badge">--</span>
+          <img id="header-avatar" class="sp-avatar header-avatar avatar-placeholder" src="" alt="" width="44" height="44" />
+        </div>
       </header>
-      <div class="scanner-wrap scanner-card">
-        <div class="scan-frame" id="scan-frame">
-          <video id="scan-video" playsinline muted aria-label="Camera preview"></video>
-          <div class="scan-line" aria-hidden="true"></div>
-        </div>
-        <p id="scanner-status" class="muted">Allow camera access to scan, or simulate below.</p>
-        <div class="toolbar-row" style="justify-content:center">
-          <button type="button" class="sp-btn sp-btn-soft" id="toggle-flash">Flashlight</button>
-          <button type="button" class="sp-btn sp-btn-primary" id="simulate-scan">Simulate Scan</button>
-        </div>
-      </div>
+      <div class="sp-body">
+        <main class="sp-main">
+          <div class="page-title-block" style="margin-bottom:20px">
+            <h1>Scan QR</h1>
+            <p>Point your camera at a verified Shyam Sanitaries product code</p>
+          </div>
+          <div class="scanner-premium">
+            <div class="scanner-frame-premium">
+              <div id="qr-reader" class="qr-reader-mount" aria-label="QR scanner"></div>
+            </div>
+            <p id="scanner-status" class="muted" style="text-align:center;margin-top:12px">Starting camera…</p>
+            <div class="scanner-toolbar">
+              <button type="button" class="sp-btn sp-btn-ghost sp-btn-sm" disabled title="Requires device support"><i class="fa-solid fa-lightbulb"></i> Torch</button>
+              <button type="button" class="sp-btn sp-btn-ghost sp-btn-sm" disabled title="Use system camera switch"><i class="fa-solid fa-camera-rotate"></i> Switch camera</button>
+            </div>
+            <div class="scanner-instructions">
+              <h4>How to scan</h4>
+              <ol>
+                <li>Allow camera access when prompted</li>
+                <li>Hold steady and align the QR inside the frame</li>
+                <li>Points are credited instantly after verification</li>
+              </ol>
+            </div>
+            <section class="section-premium" style="margin-top:24px">
+              <div class="section-head-premium"><h3>Recent scans</h3></div>
+              <div class="glass-panel"><div id="recent-scans-list" class="list-stack"></div></div>
+            </section>
+          </div>
+        </main>
       </div>
     </div>
-    <nav id="app-bottom-nav" class="app-bottom-nav"></nav>
-
+    <nav id="app-bottom-nav"></nav>
     <div id="scan-success-modal" class="app-modal hidden">
       <div class="modal-panel">
-        <h3>🎉 Scan successful!</h3>
+        <h3>Scan successful</h3>
         <p id="scan-points-text">You earned points</p>
         <p class="celebration-num">+<span id="scan-points-number">0</span> pts</p>
         <button type="button" class="sp-btn sp-btn-primary sp-btn-full" id="scan-ok">Continue</button>

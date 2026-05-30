@@ -1,69 +1,103 @@
-import { bootProtected, $, $$, redeemReward, format } from "./app-core.js";
-
-const REWARDS = [
-  { icon: "🛒", title: "Amazon Voucher", pts: 1500, cat: "Gift Cards" },
-  { icon: "🛍️", title: "Flipkart Gift Card", pts: 1400, cat: "Gift Cards" },
-  { icon: "💳", title: "UPI Cashback", pts: 900, cat: "Cashback" },
-  { icon: "🔧", title: "Plumbing Tool Kit", pts: 3200, cat: "Electronics" },
-  { icon: "🚿", title: "Faucet Rewards Pack", pts: 2600, cat: "Electronics" },
-  { icon: "⭐", title: "Exclusive Offer", pts: 2200, cat: "Gift Cards" },
-];
+import { bootProtected, $, $$, format, emptyState, toast } from "./app-core.js";
+import { subscribeRewards, redeemRewardItem } from "./firestore-service.js";
 
 let pending = null;
-let filter = "all";
+let allRewards = [];
+let rewardsUnsub = null;
 
 function render() {
+  const grid = $("#reward-grid");
+  if (!grid) return;
+
   const q = ($("#reward-search")?.value || "").toLowerCase();
   const sort = $("#reward-sort")?.value || "points-asc";
-  let list = REWARDS.filter((r) => filter === "all" || r.cat === filter);
-  list = list.filter((r) => r.title.toLowerCase().includes(q));
-  if (sort === "points-asc") list.sort((a, b) => a.pts - b.pts);
-  else if (sort === "points-desc") list.sort((a, b) => b.pts - a.pts);
-  else list.sort((a, b) => a.title.localeCompare(b.title));
 
-  $("#reward-grid").innerHTML = list
-    .map(
-      (r) => `<article class="reward-card" data-cat="${r.cat}">
-      <div class="reward-card-visual">${r.icon}</div>
-      <span class="cat">${r.cat}</span>
-      <h4>${r.title}</h4>
-      <p class="pts">${format(r.pts)} pts</p>
-      <button type="button" class="sp-btn sp-btn-primary sp-btn-sm sp-btn-full redeem-btn" data-title="${r.title}" data-points="${r.pts}">Redeem</button>
-    </article>`
-    )
+  let list = [...allRewards];
+  list = list.filter((r) => {
+    const title = (r.title || "").toLowerCase();
+    const desc = (r.description || "").toLowerCase();
+    return title.includes(q) || desc.includes(q);
+  });
+
+  if (sort === "points-asc") list.sort((a, b) => Number(a.pointsRequired) - Number(b.pointsRequired));
+  else if (sort === "points-desc") list.sort((a, b) => Number(b.pointsRequired) - Number(a.pointsRequired));
+  else list.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+
+  if (!list.length) {
+    grid.innerHTML = emptyState("No rewards available");
+    return;
+  }
+
+  grid.innerHTML = list
+    .map((r) => {
+      const pts = Number(r.pointsRequired);
+      const stock = Number(r.stock ?? 0);
+      const out = stock <= 0;
+      const visual = r.image
+        ? `<img src="${r.image}" alt="" class="reward-card-img" loading="lazy" />`
+        : `<div class="reward-card-visual">🎁</div>`;
+      return `<article class="reward-card">
+        ${visual}
+        <h4>${r.title || "Reward"}</h4>
+        <p class="muted reward-desc">${r.description || ""}</p>
+        <p class="pts">${pts ? `${format(pts)} pts` : "--"}</p>
+        <p class="muted" style="font-size:0.75rem">Stock: ${stock > 0 ? format(stock) : "Out of stock"}</p>
+        <button type="button" class="sp-btn sp-btn-primary sp-btn-sm sp-btn-full redeem-btn" data-id="${r.id}" ${out ? "disabled" : ""}>Redeem</button>
+      </article>`;
+    })
     .join("");
 
   $$(".redeem-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
-      pending = { title: btn.dataset.title, pts: Number(btn.dataset.points) };
-      $("#redeem-title").textContent = `Redeem ${pending.title}?`;
-      $("#redeem-text").textContent = `${format(pending.pts)} points will be deducted.`;
-      $("#redeem-modal").classList.remove("hidden");
+      const reward = allRewards.find((r) => r.id === btn.dataset.id);
+      if (!reward) return;
+      pending = reward;
+      const pts = Number(reward.pointsRequired) || 0;
+      $("#redeem-title").textContent = `Redeem ${reward.title || "reward"}?`;
+      $("#redeem-text").textContent = pts ? `${format(pts)} points will be deducted.` : "Confirm redemption.";
+      $("#redeem-modal")?.classList.remove("hidden");
     });
   });
 }
 
-bootProtected("rewards", () => {
-  render();
+bootProtected("rewards", (user) => {
+  const grid = $("#reward-grid");
+  if (grid) grid.innerHTML = emptyState("Loading rewards…");
+
+  rewardsUnsub = subscribeRewards(
+    (list) => {
+      allRewards = list;
+      render();
+    },
+    () => {
+      if (grid) grid.innerHTML = emptyState("Unable to load rewards");
+    }
+  );
+
   $("#reward-search")?.addEventListener("input", render);
   $("#reward-sort")?.addEventListener("change", render);
-  $$("#reward-filters .chip").forEach((chip) => {
-    chip.addEventListener("click", () => {
-      $$("#reward-filters .chip").forEach((c) => c.classList.remove("active"));
-      chip.classList.add("active");
-      filter = chip.dataset.cat;
-      render();
-    });
-  });
+
   $("#cancel-redeem")?.addEventListener("click", () => {
-    $("#redeem-modal").classList.add("hidden");
+    $("#redeem-modal")?.classList.add("hidden");
     pending = null;
   });
+
   $("#confirm-redeem")?.addEventListener("click", async () => {
     if (!pending) return;
-    const ok = await redeemReward(pending.title, pending.pts);
-    $("#redeem-modal").classList.add("hidden");
-    pending = null;
-    if (ok) render();
+    const btn = $("#confirm-redeem");
+    btn.disabled = true;
+    try {
+      await redeemRewardItem(user.uid, pending);
+      toast("Reward redeemed successfully", "success");
+      $("#redeem-modal")?.classList.add("hidden");
+      pending = null;
+    } catch (err) {
+      if (err?.code === "insufficient-points") toast("Not enough points", "error");
+      else toast(err?.message || "Redemption failed", "error");
+    } finally {
+      btn.disabled = false;
+    }
   });
 });
+
+window.addEventListener("pagehide", () => rewardsUnsub?.());

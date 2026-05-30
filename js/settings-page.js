@@ -1,21 +1,15 @@
 import { bootProtected, $, applyTheme, confirmLogout, toast } from "./app-core.js";
+import { updateUserProfile } from "./firestore-service.js";
 
-function syncToggle(btn, key, onClass = "on") {
-  if (!btn) return;
-  const val = localStorage.getItem(key);
-  if (val === "1" || (key === "sp-notifications" && val !== "0")) btn.classList.add(onClass);
-  btn.addEventListener("click", () => {
-    btn.classList.toggle(onClass);
-    localStorage.setItem(key, btn.classList.contains(onClass) ? "1" : "0");
-    if (key === "sp-theme") {
-      localStorage.setItem("sp-theme", btn.classList.contains(onClass) ? "dark" : "light");
-      applyTheme();
-    }
-    toast("Settings saved", "success");
-  });
-}
+bootProtected("settings", (user, profile) => {
+  const nameInput = $("#settings-name");
+  const phoneInput = $("#settings-phone");
+  const cityInput = $("#settings-city");
 
-bootProtected("settings", () => {
+  if (nameInput) nameInput.value = profile?.fullName || profile?.name || "";
+  if (phoneInput) phoneInput.value = profile?.mobile || profile?.phone || "";
+  if (cityInput) cityInput.value = profile?.city || "";
+
   const themeBtn = $("#theme-toggle");
   if (themeBtn && (localStorage.getItem("sp-theme") || "") === "dark") themeBtn.classList.add("on");
 
@@ -26,15 +20,23 @@ bootProtected("settings", () => {
     toast("Theme updated", "success");
   });
 
-  syncToggle($("#notif-toggle"), "sp-notifications");
-  syncToggle($("#email-toggle"), "sp-email-alerts");
+  $("#save-settings")?.addEventListener("click", async () => {
+    const fullName = nameInput?.value.trim() || "";
+    const mobile = phoneInput?.value.trim() || "";
+    const city = cityInput?.value.trim() || "";
 
-  $("#language-select")?.addEventListener("change", (e) => {
-    localStorage.setItem("sp-lang", e.target.value);
-    toast("Language preference saved", "success");
+    try {
+      await updateUserProfile(user.uid, {
+        ...(fullName ? { fullName } : {}),
+        mobile,
+        city,
+      });
+      toast("Settings saved", "success");
+    } catch (err) {
+      console.error(err);
+      toast("Could not save settings", "error");
+    }
   });
-  const lang = localStorage.getItem("sp-lang");
-  if (lang && $("#language-select")) $("#language-select").value = lang;
 
   $("#settings-logout")?.addEventListener("click", confirmLogout);
 });

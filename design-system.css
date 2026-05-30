@@ -1,19 +1,19 @@
 /* Shyam Points — Design System v2 */
 :root {
-  --sp-primary: #2563ff;
-  --sp-primary-dark: #1a46c4;
-  --sp-primary-light: #5b8cff;
-  --sp-secondary: #5b8cff;
-  --sp-accent: #7c3aed;
-  --sp-gold: #f5b942;
+  --sp-primary: #2563eb;
+  --sp-primary-dark: #1d4ed8;
+  --sp-primary-light: #3b82f6;
+  --sp-secondary: #3b82f6;
+  --sp-accent: #3b82f6;
+  --sp-gold: #f59e0b;
   --sp-platinum: #a78bfa;
-  --sp-bg: #f4f7ff;
+  --sp-bg: #f5f7fb;
   --sp-bg-elevated: #ffffff;
   --sp-card: #ffffff;
   --sp-text: #0f172a;
   --sp-muted: #64748b;
   --sp-border: #e2e8f0;
-  --sp-success: #14b86a;
+  --sp-success: #10b981;
   --sp-warning: #f59e0b;
   --sp-danger: #ef4444;
   --sp-radius-xs: 8px;
