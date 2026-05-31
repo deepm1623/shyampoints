@@ -32,10 +32,12 @@ const firebaseConfig = {
   appId: "1:884009230588:web:2f73257aecd65979fbf779",
 };
 
+export { firebaseConfig };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
+const storage = getStorage(app, `gs://${firebaseConfig.storageBucket}`);
 const provider = new GoogleAuthProvider();
 
 const persistenceReady = setPersistence(auth, browserLocalPersistence).catch((err) => {

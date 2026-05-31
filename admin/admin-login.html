@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#2563eb" />
+    <title>Admin Login | Shyam Points</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../design-system.css" />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body class="admin-login-body">
+    <main class="admin-login-card">
+      <img src="../shyam points logo.png" alt="Shyam Points" width="64" height="64" />
+      <h1>Admin Portal</h1>
+      <p class="muted">Shyam Points — authorized staff only</p>
+      <form id="admin-login-form">
+        <label>Email<input type="email" id="admin-email" required autocomplete="username" /></label>
+        <label>Password<input type="password" id="admin-password" required autocomplete="current-password" /></label>
+        <button type="submit" class="sp-btn sp-btn-primary sp-btn-full">Sign in</button>
+      </form>
+      <p id="admin-login-error" class="admin-login-error" hidden></p>
+    </main>
+    <script>window.ADMIN_API_BASE = "http://localhost:3001";</script>
+    <script type="module">
+      import { loginWithEmail } from "../firebase.js";
+      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+      import { app } from "../firebase.js";
+
+      const db = getFirestore(app);
+      const form = document.getElementById("admin-login-form");
+      const errEl = document.getElementById("admin-login-error");
+
+      form?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errEl.hidden = true;
+        const email = document.getElementById("admin-email").value.trim();
+        const password = document.getElementById("admin-password").value;
+
+        try {
+          const { user } = await loginWithEmail(email, password);
+          const snap = await getDoc(doc(db, "users", user.uid));
+          const role = snap.exists() ? String(snap.data().role || "").toLowerCase() : "";
+          if (role !== "admin") {
+            errEl.textContent = "This account does not have admin access.";
+            errEl.hidden = false;
+            return;
+          }
+          location.href = "admin-dashboard.html";
+        } catch (err) {
+          errEl.textContent = err.message || "Login failed";
+          errEl.hidden = false;
+        }
+      });
+    </script>
+  </body>
+</html>

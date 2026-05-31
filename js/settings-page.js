@@ -4,6 +4,7 @@ import {
   uploadProfilePhoto,
   removeProfilePhoto,
   validateProfilePhoto,
+  storageErrorMessage,
 } from "./firestore-service.js";
 
 let pageReady = false;
@@ -104,20 +105,28 @@ bootProtected("settings", (user, profile) => {
     if (photoRemoveBtn) photoRemoveBtn.hidden = false;
 
     setBusy(true);
+    setProgress(0);
+    toast("Uploading photo…", "success");
     if (photoStatus) photoStatus.textContent = "Uploading…";
 
     try {
-      await uploadProfilePhoto(user.uid, file, setProgress);
-      pendingPhoto = null;
+      await uploadProfilePhoto(user.uid, file, {
+        onProgress: setProgress,
+        onSuccess: (profileImage) => {
+          pendingPhoto = null;
+          applyAvatar(photoPreview, profileImage, nameInput?.value || user.displayName || user.email);
+          if (photoRemoveBtn) photoRemoveBtn.hidden = false;
+        },
+      });
       photoInput.value = "";
       if (photoStatus) photoStatus.textContent = "";
-      toast("Profile photo uploaded", "success");
+      toast("Profile photo uploaded successfully", "success");
     } catch (err) {
-      console.error(err);
+      console.error("[Settings] Profile photo upload failed", err);
       pendingPhoto = null;
       photoInput.value = "";
       fillForm(currentProfile || profile);
-      toast(err.message || "Upload failed. Check Storage rules.", "error");
+      toast(storageErrorMessage(err), "error");
     } finally {
       setBusy(false);
     }

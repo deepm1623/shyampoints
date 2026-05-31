@@ -1,4 +1,4 @@
-import { db, getMembership } from "../firebase.js";
+import { db, storage, auth, ensureAuthReady, firebaseConfig, getMembership } from "../firebase.js";
 import {
   collection,
   doc,
@@ -15,6 +15,13 @@ import {
   serverTimestamp,
   increment,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import {
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+  deleteObject,
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+import { updateProfile } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
 export { getMembership };
 
@@ -169,68 +176,157 @@ export function validateProfilePhoto(file) {
   }
 }
 
-export async function uploadProfilePhoto(uid, file, onProgress) {
+function logStorageError(phase, error) {
+  console.error(`[Shyam Storage] ${phase}`, {
+    code: error?.code,
+    message: error?.message,
+    name: error?.name,
+    serverResponse: error?.customData?.serverResponse,
+    status: error?.status_,
+    stack: error?.stack,
+  });
+}
+
+export function storageErrorMessage(error) {
+  logStorageError("Upload failed", error);
+  const code = error?.code || "";
+  if (code === "storage/unauthorized") {
+    return "Upload denied. Check Firebase Storage rules for profile-images/{uid}.";
+  }
+  if (code === "storage/unauthenticated") {
+    return "You must be signed in to upload a photo.";
+  }
+  if (code === "storage/canceled") {
+    return "Upload was canceled.";
+  }
+  if (code === "storage/quota-exceeded") {
+    return "Storage quota exceeded.";
+  }
+  if (code === "storage/retry-limit-exceeded") {
+    return "Upload timed out. Please try again.";
+  }
+  return error?.message || "Upload failed. Enable Firebase Storage in the console.";
+}
+
+export async function uploadProfilePhoto(uid, file, callbacks = {}) {
   validateProfilePhoto(file);
-  const { storage, auth } = await import("../firebase.js");
-  const { ref, uploadBytesResumable, getDownloadURL } = await import(
-    "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js"
-  );
-  const { updateProfile } = await import(
-    "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js"
-  );
 
-  const storageRef = ref(storage, `profile-images/${uid}`);
-  const task = uploadBytesResumable(storageRef, file, { contentType: file.type });
+  const onProgress = typeof callbacks === "function" ? callbacks : callbacks?.onProgress;
+  const onSuccess = typeof callbacks === "object" && callbacks ? callbacks.onSuccess : undefined;
 
-  await new Promise((resolve, reject) => {
-    task.on(
+  await ensureAuthReady();
+
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    const err = new Error("You must be signed in to upload a photo.");
+    err.code = "storage/unauthenticated";
+    throw err;
+  }
+  if (currentUser.uid !== uid) {
+    const err = new Error("Upload user mismatch.");
+    err.code = "storage/unauthorized";
+    throw err;
+  }
+
+  const ext = photoExtension(file);
+  const storagePath = `profile-images/${uid}.${ext}`;
+
+  console.info("[Shyam Storage] Starting upload", {
+    uid,
+    path: storagePath,
+    bucket: firebaseConfig.storageBucket,
+    gsBucket: `gs://${firebaseConfig.storageBucket}`,
+    fileSize: file.size,
+    fileType: file.type,
+  });
+
+  if (typeof onProgress === "function") onProgress(0);
+
+  const storageRef = ref(storage, storagePath);
+  const uploadTask = uploadBytesResumable(storageRef, file, {
+    contentType: file.type,
+    cacheControl: "public,max-age=31536000",
+    customMetadata: { uploadedBy: uid },
+  });
+
+  const profileImage = await new Promise((resolve, reject) => {
+    uploadTask.on(
       "state_changed",
-      (snap) => {
-        if (typeof onProgress === "function" && snap.totalBytes) {
-          onProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100));
-        }
+      (snapshot) => {
+        const { bytesTransferred, totalBytes, state } = snapshot;
+        const pct = totalBytes > 0 ? Math.round((bytesTransferred / totalBytes) * 100) : 0;
+
+        console.info("[Shyam Storage] Progress", {
+          state,
+          bytesTransferred,
+          totalBytes,
+          percent: pct,
+        });
+
+        if (typeof onProgress === "function") onProgress(pct);
       },
-      reject,
-      resolve
+      (error) => {
+        logStorageError("state_changed error", error);
+        reject(error);
+      },
+      async () => {
+        try {
+          const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+          console.info("[Shyam Storage] Upload complete", { downloadUrl, path: storagePath });
+          if (typeof onProgress === "function") onProgress(100);
+          resolve(downloadUrl);
+        } catch (error) {
+          logStorageError("getDownloadURL", error);
+          reject(error);
+        }
+      }
     );
   });
 
-  const profileImage = await getDownloadURL(storageRef);
+  const userRef = doc(db, "users", uid);
+  await updateDoc(userRef, { profileImage });
+  console.info("[Shyam Storage] Firestore updated", { uid, field: "profileImage" });
 
-  await updateDoc(doc(db, "users", uid), { profileImage });
-  if (auth.currentUser?.uid === uid) {
-    await updateProfile(auth.currentUser, { photoURL: profileImage });
+  try {
+    await updateProfile(currentUser, { photoURL: profileImage });
+  } catch (error) {
+    console.warn("[Shyam Storage] Auth profile photoURL update failed (Firestore saved)", error);
+  }
+
+  if (typeof onSuccess === "function") {
+    onSuccess(profileImage);
   }
 
   return profileImage;
 }
 
 export async function removeProfilePhoto(uid) {
-  const { storage, auth } = await import("../firebase.js");
-  const { ref, deleteObject } = await import(
-    "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js"
-  );
-  const { updateProfile } = await import(
-    "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js"
-  );
+  await ensureAuthReady();
 
-  try {
-    await deleteObject(ref(storage, `profile-images/${uid}`));
-  } catch {
-    /* file may not exist */
-  }
+  const paths = [
+    `profile-images/${uid}`,
+    ...["jpg", "jpeg", "png", "webp"].map((ext) => `profile-images/${uid}.${ext}`),
+    ...["jpg", "jpeg", "png", "webp"].map((ext) => `profile-photos/${uid}.${ext}`),
+  ];
 
-  for (const ext of ["jpg", "jpeg", "png", "webp"]) {
+  for (const storagePath of paths) {
     try {
-      await deleteObject(ref(storage, `profile-photos/${uid}.${ext}`));
-    } catch {
-      /* legacy path cleanup */
+      await deleteObject(ref(storage, storagePath));
+      console.info("[Shyam Storage] Deleted", storagePath);
+    } catch (error) {
+      if (error?.code !== "storage/object-not-found") {
+        console.warn("[Shyam Storage] Delete skipped", storagePath, error?.code);
+      }
     }
   }
 
   await updateDoc(doc(db, "users", uid), { profileImage: "" });
   if (auth.currentUser?.uid === uid) {
-    await updateProfile(auth.currentUser, { photoURL: null });
+    try {
+      await updateProfile(auth.currentUser, { photoURL: null });
+    } catch (error) {
+      console.warn("[Shyam Storage] Auth photoURL clear failed", error);
+    }
   }
 }
 

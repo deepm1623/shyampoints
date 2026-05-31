@@ -1,6 +1,8 @@
 import { Html5Qrcode } from "https://unpkg.com/html5-qrcode@2.3.8/esm/html5-qrcode.js";
 import { bootProtected, $, emptyState, toast } from "./app-core.js";
 import { processQrScan, subscribeTransactions, formatTimestamp } from "./firestore-service.js";
+import { scanQrViaApi } from "./api-client.js";
+import { API_BASE } from "./api-config.js";
 
 let scanner = null;
 let scanning = false;
@@ -119,7 +121,16 @@ async function handleScan(decodedText) {
   }
 
   try {
-    const result = await processQrScan(scanUser.uid, code);
+    let result;
+    try {
+      result = await scanQrViaApi(scanUser.uid, code);
+    } catch (apiErr) {
+      if (apiErr.code === "qr-invalid" || apiErr.code === "qr-used") {
+        throw apiErr;
+      }
+      console.warn("[Scanner] API unavailable, using Firestore fallback:", apiErr.message);
+      result = await processQrScan(scanUser.uid, code);
+    }
     showSuccess(result.points, result.qrId || code);
     setStatus("Scan successful!");
   } catch (err) {
@@ -269,6 +280,8 @@ bootProtected("scanner", (user) => {
   scanUser = user;
   if (pageReady) return;
   pageReady = true;
+
+  console.info("[Scanner] API base:", API_BASE);
 
   startScanner();
   window.addEventListener("pagehide", stopScanner);
