@@ -1,5 +1,6 @@
 import { bootProtected, $, $$, format, emptyState, toast } from "./app-core.js";
-import { subscribeRewards, redeemRewardItem } from "./firestore-service.js";
+import { subscribeRewards } from "./firestore-service.js";
+import { redeemViaApi, ApiError } from "./api-client.js";
 
 let pending = null;
 let allRewards = [];
@@ -9,7 +10,7 @@ function render() {
   const grid = $("#reward-grid");
   if (!grid) return;
 
-  const q = ($("#reward-search")?.value || "").toLowerCase();
+  const q = ($("#reward-search")?.value || $("#reward-search-mobile")?.value || "").toLowerCase();
   const sort = $("#reward-sort")?.value || "points-asc";
 
   let list = [...allRewards];
@@ -75,6 +76,11 @@ bootProtected("rewards", (user) => {
   );
 
   $("#reward-search")?.addEventListener("input", render);
+  $("#reward-search-mobile")?.addEventListener("input", (e) => {
+    const desktop = $("#reward-search");
+    if (desktop) desktop.value = e.target.value;
+    render();
+  });
   $("#reward-sort")?.addEventListener("change", render);
 
   $("#cancel-redeem")?.addEventListener("click", () => {
@@ -87,13 +93,18 @@ bootProtected("rewards", (user) => {
     const btn = $("#confirm-redeem");
     btn.disabled = true;
     try {
-      await redeemRewardItem(user.uid, pending);
+      await redeemViaApi(pending.id);
       toast("Reward redeemed successfully", "success");
       $("#redeem-modal")?.classList.add("hidden");
       pending = null;
     } catch (err) {
-      if (err?.code === "insufficient-points") toast("Not enough points", "error");
-      else toast(err?.message || "Redemption failed", "error");
+      if (err?.code === "insufficient-points" || err instanceof ApiError && err.code === "insufficient-points") {
+        toast("Not enough points", "error");
+      } else if (err?.message?.includes("Failed to fetch")) {
+        toast("Server unavailable. Start the backend API.", "error");
+      } else {
+        toast(err?.message || "Redemption failed", "error");
+      }
     } finally {
       btn.disabled = false;
     }

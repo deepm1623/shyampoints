@@ -58,6 +58,11 @@ bootProtected("history", (user) => {
   $("#history-search")?.addEventListener("input", (e) => {
     render($("#history-filter")?.value || "all", e.target.value);
   });
+  $("#history-search-mobile")?.addEventListener("input", (e) => {
+    const desktop = $("#history-search");
+    if (desktop) desktop.value = e.target.value;
+    render($("#history-filter")?.value || "all", e.target.value);
+  });
   $("#history-filter")?.addEventListener("change", (e) => {
     render(e.target.value, $("#history-search")?.value || "");
   });

@@ -2,7 +2,6 @@ import { db, storage, auth, ensureAuthReady, firebaseConfig, getMembership } fro
 import {
   collection,
   doc,
-  getDoc,
   getDocs,
   onSnapshot,
   query,
@@ -10,10 +9,6 @@ import {
   orderBy,
   limit,
   updateDoc,
-  setDoc,
-  runTransaction,
-  serverTimestamp,
-  increment,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import {
   ref,
@@ -341,187 +336,60 @@ export async function markAllNotificationsRead(uid) {
   await Promise.all(unread.map((d) => updateDoc(d.ref, { read: true })));
 }
 
-export async function processQrScan(userId, qrIdRaw) {
-  const qrId = String(qrIdRaw || "").trim();
-  if (!qrId) {
-    const err = new Error("Invalid QR Code");
-    err.code = "qr-invalid";
-    throw err;
+export function subscribeAnnouncements(onData, onError, max = 10) {
+  const q = query(
+    collection(db, "announcements"),
+    where("status", "==", "active"),
+    orderBy("createdAt", "desc"),
+    limit(max)
+  );
+  return onSnapshot(
+    q,
+    (snap) => onData(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    onError
+  );
+}
+
+export function subscribeLeaderboard(onData, onError, max = 10) {
+  const q = query(collection(db, "leaderboard"), orderBy("points", "desc"), limit(max));
+  return onSnapshot(
+    q,
+    (snap) => {
+      onData(
+        snap.docs.map((d, i) => ({
+          id: d.id,
+          rank: d.data().rank ?? i + 1,
+          ...d.data(),
+        }))
+      );
+    },
+    onError
+  );
+}
+
+/** Aggregate positive points earned per calendar month from transactions */
+export function aggregateMonthlyPoints(transactions) {
+  const months = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i -= 1) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      key: `${d.getFullYear()}-${d.getMonth()}`,
+      label: d.toLocaleDateString("en-IN", { month: "short" }),
+      year: d.getFullYear(),
+      month: d.getMonth(),
+      total: 0,
+    });
   }
 
-  const userRef = doc(db, "users", userId);
-  const qrRef = doc(db, "qr_codes", qrId);
-
-  return runTransaction(db, async (transaction) => {
-    const qrSnap = await transaction.get(qrRef);
-    if (!qrSnap.exists()) {
-      const err = new Error("Invalid QR Code");
-      err.code = "qr-invalid";
-      throw err;
-    }
-
-    const qr = qrSnap.data();
-    if (qr.status === "used") {
-      const err = new Error("QR already redeemed");
-      err.code = "qr-used";
-      throw err;
-    }
-
-    const points = Number(qr.points) || 0;
-    const userSnap = await transaction.get(userRef);
-    const user = userSnap.exists() ? userSnap.data() : {};
-    const current = Number(user.currentPoints ?? user.points ?? 0);
-    const lifetime = Number(user.lifetimePoints ?? current);
-    const wallet = Number(user.walletBalance ?? current);
-    const newCurrent = current + points;
-    const newLifetime = lifetime + points;
-    const newWallet = wallet + points;
-    const tier = getMembership(newCurrent);
-    const totalScans = Number(user.totalScans ?? user.productsScanned ?? 0) + 1;
-
-    transaction.update(qrRef, {
-      status: "used",
-      usedBy: userId,
-      usedAt: serverTimestamp(),
-    });
-
-    transaction.set(
-      userRef,
-      {
-        uid: userId,
-        currentPoints: newCurrent,
-        points: newCurrent,
-        lifetimePoints: newLifetime,
-        walletBalance: newWallet,
-        tier,
-        membership: tier,
-        totalScans,
-        productsScanned: totalScans,
-      },
-      { merge: true }
-    );
-
-    const txRef = doc(collection(db, "transactions"));
-    transaction.set(txRef, {
-      userId,
-      type: "scan",
-      points,
-      description: `QR scan · ${points} pts`,
-      qrId,
-      createdAt: serverTimestamp(),
-    });
-
-    const notifRef = doc(collection(db, "notifications"));
-    transaction.set(notifRef, {
-      userId,
-      title: "Points earned",
-      body: `You earned ${points} points from a verified QR scan.`,
-      type: "earn",
-      read: false,
-      createdAt: serverTimestamp(),
-    });
-
-    return { points, qrId };
-  });
-}
-
-export async function redeemRewardItem(userId, reward) {
-  const pointsRequired = Number(reward.pointsRequired) || 0;
-  const userRef = doc(db, "users", userId);
-  const rewardRef = doc(db, "rewards", reward.id);
-
-  return runTransaction(db, async (transaction) => {
-    const rewardSnap = await transaction.get(rewardRef);
-    if (!rewardSnap.exists() || rewardSnap.data().status !== "active") {
-      const err = new Error("Reward is no longer available");
-      err.code = "reward-unavailable";
-      throw err;
-    }
-
-    const rewardData = rewardSnap.data();
-    const stock = Number(rewardData.stock ?? 0);
-    if (stock <= 0) {
-      const err = new Error("Reward out of stock");
-      err.code = "reward-stock";
-      throw err;
-    }
-
-    const userSnap = await transaction.get(userRef);
-    if (!userSnap.exists()) {
-      const err = new Error("User profile not found");
-      throw err;
-    }
-
-    const user = userSnap.data();
-    const current = Number(user.currentPoints ?? user.points ?? 0);
-    if (current < pointsRequired) {
-      const err = new Error("Not enough points");
-      err.code = "insufficient-points";
-      throw err;
-    }
-
-    const newCurrent = current - pointsRequired;
-    const wallet = Number(user.walletBalance ?? current);
-    const newWallet = Math.max(0, wallet - pointsRequired);
-    const tier = getMembership(newCurrent);
-    const redeemed = Number(user.rewardsRedeemed ?? 0) + 1;
-
-    transaction.update(rewardRef, { stock: increment(-1) });
-
-    transaction.set(
-      userRef,
-      {
-        currentPoints: newCurrent,
-        points: newCurrent,
-        walletBalance: newWallet,
-        tier,
-        membership: tier,
-        rewardsRedeemed: redeemed,
-      },
-      { merge: true }
-    );
-
-    const txRef = doc(collection(db, "transactions"));
-    transaction.set(txRef, {
-      userId,
-      type: "redemption",
-      points: -pointsRequired,
-      description: `Redeemed · ${rewardData.title || "Reward"}`,
-      rewardId: reward.id,
-      createdAt: serverTimestamp(),
-    });
-
-    const redemptionRef = doc(collection(db, "redemptions"));
-    transaction.set(redemptionRef, {
-      userId,
-      rewardId: reward.id,
-      rewardTitle: rewardData.title || "",
-      pointsUsed: pointsRequired,
-      status: "completed",
-      createdAt: serverTimestamp(),
-    });
-
-    const notifRef = doc(collection(db, "notifications"));
-    transaction.set(notifRef, {
-      userId,
-      title: "Reward redeemed",
-      body: `You redeemed ${rewardData.title || "a reward"} for ${pointsRequired} points.`,
-      type: "redeem",
-      read: false,
-      createdAt: serverTimestamp(),
-    });
-
-    return { pointsUsed: pointsRequired };
-  });
-}
-
-export function sumPointsToday(transactions) {
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  return transactions.reduce((sum, tx) => {
-    if (tx.points <= 0) return sum;
+  transactions.forEach((tx) => {
+    const pts = Number(tx.points) || 0;
+    if (pts <= 0) return;
     const { raw } = formatTimestamp(tx.createdAt);
-    if (!raw || raw < start) return sum;
-    return sum + Number(tx.points);
-  }, 0);
+    if (!raw) return;
+    const bucket = months.find((m) => m.year === raw.getFullYear() && m.month === raw.getMonth());
+    if (bucket) bucket.total += pts;
+  });
+
+  return months;
 }

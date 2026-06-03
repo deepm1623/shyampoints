@@ -211,7 +211,10 @@ a {
   font-size: clamp(1.375rem, 4vw, 1.625rem);
   font-weight: 800;
   letter-spacing: -0.03em;
+  line-height: 1.15;
   margin-bottom: 4px;
+  overflow: visible;
+  white-space: normal;
 }
 
 .auth-subtitle {

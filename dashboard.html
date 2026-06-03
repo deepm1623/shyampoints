@@ -8,151 +8,174 @@
     <link rel="icon" type="image/png" href="favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
     <link rel="stylesheet" href="design-system.css" />
     <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="dashboard.css" />
   </head>
-  <body class="app-body sp-app dashboard-layout">
+  <body class="app-body sp-app dash-premium">
     <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div><p>Loading dashboard…</p></div>
-    <div class="app-bg" aria-hidden="true"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+    <div class="dash-bg" aria-hidden="true"></div>
     <div id="toast-wrap" class="app-toast-wrap"></div>
 
     <aside id="app-sidebar" class="sp-sidebar" aria-label="Sidebar"></aside>
 
-    <div class="sp-shell">
-      <header class="sp-topbar">
-        <div class="sp-topbar-left"></div>
-        <div class="sp-topbar-center">
-          <label class="sp-search">
-            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-            <input type="search" placeholder="Search rewards, transactions…" aria-label="Search" />
-          </label>
-        </div>
-        <div class="sp-topbar-right">
-          <button type="button" class="sp-icon-btn" id="header-notify" aria-label="Notifications">
-            <i class="fa-solid fa-bell"></i>
-            <span id="notify-badge" class="notify-badge" hidden>0</span>
-          </button>
-          <span id="header-points-badge" class="sp-points-badge">--</span>
-          <img id="header-avatar" class="sp-avatar header-avatar avatar-placeholder" src="" alt="" width="44" height="44" />
-        </div>
-      </header>
+    <div class="sp-shell dash-shell">
+      <div class="sp-body dash-body">
+        <main class="sp-main dash-main">
 
-      <div class="sp-body">
-        <main class="sp-main">
-          <article class="premium-hero">
-            <div class="premium-hero-grid">
-              <div class="premium-hero-top">
-                <div>
-                  <small>Your loyalty wallet</small>
-                  <h2 id="dash-current-points">--</h2>
-                </div>
-                <span data-tier class="sp-badge tier-lg bronze">--</span>
-              </div>
-              <div class="premium-hero-metrics">
-                <div class="premium-hero-metric"><span>Lifetime</span><strong id="dash-lifetime-points">--</strong></div>
-                <div class="premium-hero-metric"><span>Wallet</span><strong id="dash-wallet">--</strong></div>
-                <div class="premium-hero-metric"><span>Role</span><strong id="dash-role">--</strong></div>
-                <div class="premium-hero-metric"><span>City</span><strong id="dash-city">--</strong></div>
-              </div>
-              <div>
-                <small id="next-tier-text">No tier data available</small>
-                <div class="progress-track"><div id="hero-progress" class="progress-fill"></div></div>
+          <!-- SECTION 1 — HEADER -->
+          <header class="dash-header dash-fade-in">
+            <div class="dash-header-profile">
+              <button type="button" class="dash-avatar-btn" id="dash-avatar-btn" aria-label="Open profile">
+                <img id="dash-header-avatar" class="dash-avatar avatar-placeholder" src="" alt="" width="52" height="52" />
+              </button>
+              <div class="dash-header-text">
+                <h1 class="dash-hello">Hello, <span id="welcome-name">Member</span> 👋</h1>
+                <p class="dash-meta">
+                  <span id="hero-id">--</span>
+                  <span class="dash-meta-dot" aria-hidden="true">·</span>
+                  <span id="dash-tier-label" class="dash-tier-label">Member</span>
+                </p>
               </div>
             </div>
-          </article>
+            <div class="dash-header-actions">
+              <button type="button" class="dash-icon-btn" id="header-notify" aria-label="Notifications">
+                <i class="fa-solid fa-bell"></i>
+                <span id="notify-badge" class="dash-notify-badge" hidden>0</span>
+              </button>
+              <span id="header-points-badge" class="dash-points-pill">--</span>
+            </div>
+          </header>
 
-          <div class="stats-premium">
-            <article class="stat-card-premium">
-              <div class="stat-icon blue"><i class="fa-solid fa-coins"></i></div>
-              <p>Current Points</p>
-              <h4 id="stat-current">--</h4>
+          <!-- SECTION 2 — MAIN ACTIONS -->
+          <nav class="dash-actions dash-fade-in dash-delay-1" aria-label="Quick actions">
+            <a href="scanner.html" class="dash-action-card dash-action-scan">
+              <span class="dash-action-icon"><i class="fa-solid fa-qrcode"></i></span>
+              <span>Scan QR</span>
+            </a>
+            <a href="rewards.html" class="dash-action-card">
+              <span class="dash-action-icon"><i class="fa-solid fa-gift"></i></span>
+              <span>Rewards</span>
+            </a>
+            <a href="history.html" class="dash-action-card">
+              <span class="dash-action-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+              <span>History</span>
+            </a>
+            <a href="profile.html" class="dash-action-card">
+              <span class="dash-action-icon"><i class="fa-solid fa-user"></i></span>
+              <span>Profile</span>
+            </a>
+          </nav>
+
+          <!-- SECTION 3 — STATS -->
+          <section class="dash-stats dash-fade-in dash-delay-2" aria-label="Statistics">
+            <article class="dash-stat-card">
+              <div class="dash-stat-icon wallet"><i class="fa-solid fa-wallet"></i></div>
+              <p>Wallet Balance</p>
+              <h3><span id="stat-wallet" data-count="0">0</span> <small>pts</small></h3>
             </article>
-            <article class="stat-card-premium">
-              <div class="stat-icon green"><i class="fa-solid fa-chart-line"></i></div>
+            <article class="dash-stat-card">
+              <div class="dash-stat-icon lifetime"><i class="fa-solid fa-chart-line"></i></div>
               <p>Lifetime Points</p>
-              <h4 id="stat-lifetime">--</h4>
+              <h3><span id="stat-lifetime" data-count="0">0</span> <small>pts</small></h3>
             </article>
-            <article class="stat-card-premium">
-              <div class="stat-icon amber"><i class="fa-solid fa-qrcode"></i></div>
-              <p>QR Scans</p>
-              <h4 id="stat-scans">--</h4>
+            <article class="dash-stat-card">
+              <div class="dash-stat-icon scans"><i class="fa-solid fa-barcode"></i></div>
+              <p>Products Scanned</p>
+              <h3><span id="stat-scans" data-count="0">0</span></h3>
             </article>
-            <article class="stat-card-premium">
-              <div class="stat-icon purple"><i class="fa-solid fa-gift"></i></div>
+            <article class="dash-stat-card">
+              <div class="dash-stat-icon redeemed"><i class="fa-solid fa-gift"></i></div>
               <p>Rewards Redeemed</p>
-              <h4 id="stat-redeemed">--</h4>
+              <h3><span id="stat-redeemed" data-count="0">0</span></h3>
             </article>
+          </section>
+
+          <!-- SECTION 4 — TIER PROGRESS -->
+          <section class="dash-tier-card dash-fade-in dash-delay-3" aria-label="Membership tier">
+            <div class="dash-tier-head">
+              <div class="dash-tier-badges">
+                <span id="tier-from" class="dash-tier-badge bronze">Bronze</span>
+                <i class="fa-solid fa-arrow-right dash-tier-arrow" aria-hidden="true"></i>
+                <span id="tier-to" class="dash-tier-badge silver">Silver</span>
+              </div>
+              <span data-tier class="dash-tier-current-pill">--</span>
+            </div>
+            <div class="dash-tier-values">
+              <div><span>Current</span><strong id="tier-current-val">0 pts</strong></div>
+              <div><span>Required</span><strong id="tier-required-val">500 pts</strong></div>
+            </div>
+            <p id="next-tier-text" class="dash-tier-message">Earn points to unlock Silver</p>
+            <div class="dash-progress-track"><div id="tier-progress-bar" class="dash-progress-fill"></div></div>
+          </section>
+
+          <div class="dash-grid">
+            <div class="dash-grid-main">
+              <!-- SECTION 5 — RECENT SCANS -->
+              <section class="dash-panel dash-fade-in dash-delay-4">
+                <div class="dash-panel-head">
+                  <h2>Recent scans</h2>
+                  <a href="history.html" class="dash-link">View all</a>
+                </div>
+                <div id="recent-scans-list" class="dash-timeline"><div class="dash-skeleton"></div></div>
+              </section>
+
+              <!-- SECTION 6 — REWARDS PREVIEW -->
+              <section class="dash-panel dash-fade-in dash-delay-5">
+                <div class="dash-panel-head">
+                  <h2>Rewards preview</h2>
+                  <a href="rewards.html" class="dash-btn-outline">View all rewards</a>
+                </div>
+                <div id="featured-rewards" class="dash-rewards-row"><div class="dash-skeleton"></div></div>
+              </section>
+
+              <!-- SECTION 7 — PERFORMANCE CHART -->
+              <section class="dash-panel dash-fade-in dash-delay-6">
+                <div class="dash-panel-head">
+                  <h2>Points earned per month</h2>
+                </div>
+                <div class="dash-chart-wrap">
+                  <canvas id="points-chart" aria-label="Points earned per month chart"></canvas>
+                </div>
+              </section>
+
+              <!-- SECTION 10 — ACTIVITY FEED -->
+              <section class="dash-panel dash-fade-in dash-delay-7">
+                <div class="dash-panel-head">
+                  <h2>Activity feed</h2>
+                  <a href="history.html" class="dash-link">See history</a>
+                </div>
+                <div id="activity-feed" class="dash-feed"><div class="dash-skeleton"></div></div>
+              </section>
+            </div>
+
+            <aside class="dash-grid-side">
+              <!-- SECTION 8 — LEADERBOARD -->
+              <section class="dash-panel dash-fade-in dash-delay-5">
+                <div class="dash-panel-head">
+                  <h2>Top plumbers</h2>
+                  <span class="dash-panel-tag">This month</span>
+                </div>
+                <div id="leaderboard-list" class="dash-leaderboard"><div class="dash-skeleton"></div></div>
+              </section>
+
+              <!-- SECTION 9 — ANNOUNCEMENTS -->
+              <section class="dash-panel dash-fade-in dash-delay-6">
+                <div class="dash-panel-head">
+                  <h2>Announcements</h2>
+                </div>
+                <div id="announcements-list" class="dash-announcements"><div class="dash-skeleton"></div></div>
+              </section>
+            </aside>
           </div>
-
-          <div class="quick-actions-premium">
-            <a href="scanner.html" class="quick-action-card"><i class="fa-solid fa-qrcode"></i>Scan QR</a>
-            <a href="rewards.html" class="quick-action-card"><i class="fa-solid fa-gift"></i>View Rewards</a>
-            <a href="history.html" class="quick-action-card"><i class="fa-solid fa-clock-rotate-left"></i>View History</a>
-            <a href="profile.html" class="quick-action-card"><i class="fa-solid fa-user-pen"></i>Edit Profile</a>
-          </div>
-
-          <section class="section-premium">
-            <div class="section-head-premium">
-              <h3>Recent activity</h3>
-              <a href="history.html" class="sp-btn sp-btn-soft sp-btn-sm">View all</a>
-            </div>
-            <div class="glass-panel"><div id="wallet-transactions" class="list-stack"></div></div>
-          </section>
-
-          <section class="section-premium">
-            <div class="section-head-premium">
-              <h3>Rewards marketplace</h3>
-              <a href="rewards.html" class="sp-btn sp-btn-soft sp-btn-sm">Browse all</a>
-            </div>
-            <div id="featured-rewards" class="featured-rewards-grid"></div>
-          </section>
-
-          <section class="section-premium">
-            <div class="section-head-premium">
-              <h3>Notifications</h3>
-              <a href="notifications.html" class="sp-btn sp-btn-soft sp-btn-sm">View all</a>
-            </div>
-            <div class="glass-panel"><div id="dash-notifications" class="inbox-list"></div></div>
-          </section>
         </main>
-
-        <aside class="sp-insights" id="app-insights" aria-label="Insights">
-          <div class="insight-card">
-            <h4>Tier progress</h4>
-            <div class="insight-tier-row">
-              <span data-tier class="sp-badge bronze">--</span>
-            </div>
-            <small id="insights-next-tier">No tier data available</small>
-            <div class="progress-track" style="margin-top:10px"><div id="insights-progress" class="progress-fill"></div></div>
-          </div>
-          <div class="insight-card">
-            <h4>Wallet</h4>
-            <p style="margin:0;font-size:1.25rem;font-weight:800" id="insights-wallet">--</p>
-          </div>
-          <div class="insight-card">
-            <h4>Recent rewards</h4>
-            <div id="insights-rewards" class="insight-list"></div>
-          </div>
-          <div class="insight-card">
-            <h4>Latest activity</h4>
-            <div id="insights-activity" class="insight-list"></div>
-          </div>
-          <div class="insight-card">
-            <h4>Announcements</h4>
-            <div id="insights-announcements" class="insight-list"></div>
-          </div>
-          <div class="insight-card">
-            <h4>Leaderboard</h4>
-            <p style="margin:0;font-size:0.875rem;color:var(--sp-muted)">Your position</p>
-            <p style="margin:8px 0 0;font-size:1.5rem;font-weight:800" id="insights-rank">--</p>
-          </div>
-        </aside>
       </div>
     </div>
 
     <nav id="app-bottom-nav" aria-label="Mobile navigation"></nav>
-    <script type="module" src="js/dashboard-page.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script type="module" src="dashboard.js"></script>
   </body>
 </html>

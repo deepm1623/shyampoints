@@ -217,6 +217,44 @@
 
 .muted { color: var(--sp-muted); }
 
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.admin-toolbar input[type="search"] {
+  flex: 1 1 220px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--sp-border);
+  font: inherit;
+}
+
+.badge-danger {
+  color: var(--sp-danger);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.admin-form label {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.admin-form input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--sp-border);
+  font: inherit;
+}
+
 @media (max-width: 600px) {
   .admin-table { font-size: 0.8rem; }
   .admin-nav { flex-direction: row; flex-wrap: wrap; }

@@ -140,6 +140,7 @@ function ensureTopbarLayout() {
   const left = $(".sp-topbar-left");
   if (!left || left.dataset.builtTopbar) return;
   left.dataset.builtTopbar = "1";
+  if (document.body.dataset.page === "dashboard") return;
   left.innerHTML = `
     <p class="sp-greeting">Hello, <span id="welcome-name">Member</span> 👋</p>
     <p class="sp-topbar-member"><span class="sp-member-label">Member ID:</span> <span id="hero-id">--</span></p>
@@ -183,16 +184,10 @@ export function renderUserChrome(user, profile) {
 
   setText("dash-role", displayValue(p.role, null, "—"));
   setText("dash-city", displayValue(p.city, null, "—"));
-  setText("dash-wallet", pts(walletBalance));
-  setText("dash-current-points", pts(currentPoints));
-  setText("dash-lifetime-points", pts(lifetimePoints));
-  setText("stat-current", hasProfile ? formatCount(currentPoints) : "0");
-  setText("stat-lifetime", hasProfile ? formatCount(lifetimePoints) : "0");
   setText("header-points-badge", pts(currentPoints));
-  setText("insights-wallet", pts(walletBalance));
-  setText("insights-rank", "—");
+  setText("dash-tier-label", tier ? `${tier} Member` : "Member");
 
-  ["avatar", "profile-avatar", "header-avatar"].forEach((id) => {
+  ["avatar", "profile-avatar", "header-avatar", "dash-header-avatar"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) applyAvatar(el, avatar, name || user.email);
   });
@@ -201,6 +196,7 @@ export function renderUserChrome(user, profile) {
   if (settingsPreview) applyAvatar(settingsPreview, avatar, name || user.email);
 
   $$("[data-tier]").forEach((el) => {
+    if (el.id === "dash-tier-label") return;
     if (tier) {
       el.textContent = tier;
       const t = tier.toLowerCase();
@@ -215,22 +211,28 @@ export function renderUserChrome(user, profile) {
 
   const prog = membershipProgress(currentPoints ?? 0, tier);
   const progress = currentPoints !== null && tier ? `${Math.min(100, prog.percent)}%` : "0%";
-  const bar = $("#hero-progress");
-  if (bar) bar.style.width = progress;
-  const insightsBar = $("#insights-progress");
-  if (insightsBar) insightsBar.style.width = progress;
-  const nextText = tier ? prog.next : "No tier data available";
-  setText("next-tier-text", nextText);
-  setText("insights-next-tier", nextText);
+  const onDashboard = document.body.dataset.page === "dashboard";
+  if (!onDashboard) {
+    const bar = $("#tier-progress-bar");
+    if (bar) bar.style.width = progress;
+    const nextText = tier ? prog.next : "No tier data available";
+    setText("next-tier-text", nextText);
+  }
 
-  setText(
-    "stat-scans",
-    hasProfile ? formatCount(p.totalScans) : "0"
-  );
-  setText(
-    "stat-redeemed",
-    hasProfile ? formatCount(p.rewardsRedeemed) : "0"
-  );
+  if (typeof window.__dashUpdateStats === "function" && hasProfile) {
+    window.__dashUpdateStats({
+      wallet: walletBalance ?? 0,
+      lifetime: lifetimePoints ?? 0,
+      scans: p.totalScans ?? 0,
+      redeemed: p.rewardsRedeemed ?? 0,
+      currentPoints: currentPoints ?? 0,
+      tier,
+    });
+  }
+
+  if (typeof window.__dashUpdateTier === "function" && hasProfile) {
+    window.__dashUpdateTier(currentPoints ?? 0, tier);
+  }
 
   const settingsRole = document.getElementById("settings-role");
   if (settingsRole) settingsRole.value = p.role || "";
@@ -294,22 +296,20 @@ export function initAppShell(pageId) {
   }
 
   const bottom = $("#app-bottom-nav");
-  if (bottom && !bottom.dataset.builtV4) {
-    bottom.dataset.builtV4 = "1";
-    const links = bottomNav.filter((n) => !n.scan);
-    const scanItem = bottomNav.find((n) => n.scan);
-    bottom.innerHTML = `
-      <div class="sp-bottom-row">
-        ${links
-          .map(
-            (n, i) => `<a href="${n.href}" class="sp-bottom-link${n.id === pageId ? " active" : ""}" data-nav="${n.id}">
-          <i class="fa-solid ${n.icon}" aria-hidden="true"></i><span>${n.label}</span></a>${i === 1 ? '<span class="sp-bottom-fab-slot" aria-hidden="true"></span>' : ""}`
-          )
-          .join("")}
-      </div>
-      <a href="${scanItem.href}" class="sp-bottom-scan${scanItem.id === pageId ? " active" : ""}" data-nav="${scanItem.id}" aria-label="Scan QR">
-        <i class="fa-solid ${scanItem.icon}" aria-hidden="true"></i>
-      </a>`;
+  if (bottom && !bottom.dataset.builtV5) {
+    bottom.dataset.builtV5 = "1";
+    bottom.innerHTML = bottomNav
+      .map((n) => {
+        if (n.scan) {
+          return `<a href="${n.href}" class="sp-bottom-scan${n.id === pageId ? " active" : ""}" data-nav="${n.id}" aria-label="Scan QR">
+            <i class="fa-solid ${n.icon}" aria-hidden="true"></i>
+            <span>${n.label}</span>
+          </a>`;
+        }
+        return `<a href="${n.href}" class="sp-bottom-link${n.id === pageId ? " active" : ""}" data-nav="${n.id}">
+          <i class="fa-solid ${n.icon}" aria-hidden="true"></i><span>${n.label}</span></a>`;
+      })
+      .join("");
   }
 
   $("#header-notify")?.addEventListener("click", () => {

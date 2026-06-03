@@ -1,0 +1,88 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '').lower() == 'admin';
+    }
+
+    function userSafeProfileWrite() {
+      let forbidden = [
+        'currentPoints', 'points', 'lifetimePoints', 'walletBalance',
+        'tier', 'membership', 'totalScans', 'productsScanned',
+        'rewardsRedeemed', 'role', 'uid', 'createdAt', 'suspended'
+      ];
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(forbidden);
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId)
+        && request.resource.data.uid == userId
+        && request.resource.data.currentPoints == 0
+        && request.resource.data.points == 0;
+      allow update: if isAdmin()
+        || (isOwner(userId) && userSafeProfileWrite());
+      allow delete: if isAdmin();
+    }
+
+    match /rewards/{rewardId} {
+      allow read: if resource.data.status == 'active' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /transactions/{txId} {
+      allow read: if isSignedIn()
+        && (resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if false;
+    }
+
+    match /notifications/{notifId} {
+      allow read: if isSignedIn()
+        && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if false;
+      allow update: if isSignedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow delete: if isAdmin();
+    }
+
+    match /redemptions/{redemptionId} {
+      allow read: if isSignedIn()
+        && (resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if false;
+    }
+
+    match /qr_codes/{codeId} {
+      allow read, write: if false;
+    }
+
+    match /qrcodes/{codeId} {
+      allow read, write: if false;
+    }
+
+    match /meta/{docId} {
+      allow read, write: if false;
+    }
+
+    match /announcements/{announcementId} {
+      allow read: if isSignedIn() && (resource.data.status == 'active' || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    match /leaderboard/{entryId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}

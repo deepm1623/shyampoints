@@ -1898,3 +1898,240 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* —— Dashboard v3 —— */
+.sp-dash-welcome {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.sp-dash-kicker {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sp-muted);
+}
+
+.sp-dash-greeting {
+  margin: 0;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.sp-dash-sub {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: var(--sp-muted);
+}
+
+.sp-wallet-card {
+  padding: clamp(20px, 3vw, 28px);
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(59, 130, 246, 0.04));
+  border: 1px solid rgba(37, 99, 235, 0.15);
+  border-radius: var(--sp-radius-lg);
+  box-shadow: var(--sp-shadow-sm);
+}
+
+.sp-wallet-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sp-wallet-card-top small {
+  display: block;
+  color: var(--sp-muted);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.sp-wallet-card-top h2 {
+  margin: 0;
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--sp-primary);
+}
+
+.sp-wallet-chip-mini {
+  text-align: right;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
+}
+
+.sp-wallet-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.sp-wallet-meta > div {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
+}
+
+.sp-wallet-meta span {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--sp-muted);
+  font-weight: 600;
+}
+
+.sp-wallet-meta strong {
+  font-size: 0.9rem;
+}
+
+.sp-tier-progress-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.insight-wallet-value {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.sp-toolbar-mobile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.sp-search-inline {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.sp-search-inline input {
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .sp-toolbar-mobile .sp-search-inline {
+    display: none;
+  }
+
+  body[data-page="dashboard"] .sp-insights {
+    display: flex;
+  }
+
+  /* Keep sidebar fixed — sticky was pushing main content below a full viewport block */
+  .sp-sidebar,
+  #app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
+
+  .sp-sidebar-nav {
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .sp-sidebar-nav::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+
+@media (max-width: 1023px) {
+  .sp-topbar-search-desktop {
+    display: none;
+  }
+
+  #app-bottom-nav {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: end;
+    padding: 0 4px calc(6px + env(safe-area-inset-bottom, 0px));
+    height: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .sp-bottom-row,
+  .sp-bottom-fab-slot {
+    display: none !important;
+  }
+
+  .sp-bottom-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 2px;
+    padding: 8px 2px 10px;
+    min-width: 0;
+    font-size: clamp(0.55rem, 2.8vw, 0.65rem);
+  }
+
+  .sp-bottom-link span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sp-bottom-scan {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    transform: translateY(-18px);
+    z-index: 2;
+  }
+
+  .sp-bottom-scan span {
+    position: absolute;
+    bottom: -16px;
+    font-size: clamp(0.55rem, 2.8vw, 0.65rem);
+    font-weight: 700;
+    color: var(--sp-muted);
+    white-space: nowrap;
+  }
+
+  .sp-bottom-scan.active span {
+    color: var(--sp-primary);
+  }
+}
+
+@media (max-width: 479px) {
+  .sp-wallet-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 1280px) {
+  .sp-dash-main {
+    max-width: 920px;
+  }
+}

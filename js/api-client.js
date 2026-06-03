@@ -1,4 +1,5 @@
 import { API_BASE } from "./api-config.js";
+import { auth } from "../firebase.js";
 
 export class ApiError extends Error {
   constructor(message, code, status) {
@@ -6,6 +7,19 @@ export class ApiError extends Error {
     this.code = code;
     this.status = status;
   }
+}
+
+export async function getAuthHeaders() {
+  const user = auth.currentUser;
+  if (!user) {
+    const err = new ApiError("You must be signed in", "unauthenticated", 401);
+    throw err;
+  }
+  const token = await user.getIdToken();
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
 }
 
 async function parseResponse(res) {
@@ -25,16 +39,21 @@ async function parseResponse(res) {
   return data;
 }
 
-/**
- * POST /scan — backend QR redemption
- */
-export async function scanQrViaApi(userId, qrCode) {
-  const res = await fetch(`${API_BASE}/scan`, {
+async function apiPost(path, body) {
+  const headers = await getAuthHeaders();
+  const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, qrCode }),
+    headers,
+    body: JSON.stringify(body),
   });
-  const data = await parseResponse(res);
+  return parseResponse(res);
+}
+
+/**
+ * POST /scan — backend-only QR redemption
+ */
+export async function scanQrViaApi(qrCode) {
+  const data = await apiPost("/scan", { qrCode });
   return {
     points: data.points,
     qrId: data.qrCode,
@@ -46,9 +65,9 @@ export async function scanQrViaApi(userId, qrCode) {
 }
 
 /**
- * GET /dashboard/:uid
+ * POST /redeem — backend-only reward redemption
  */
-export async function fetchDashboardViaApi(uid) {
-  const res = await fetch(`${API_BASE}/dashboard/${encodeURIComponent(uid)}`);
-  return parseResponse(res);
+export async function redeemViaApi(rewardId) {
+  const data = await apiPost("/redeem", { rewardId });
+  return data;
 }

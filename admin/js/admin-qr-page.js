@@ -1,6 +1,5 @@
 import { guardAdminPage } from "./admin-auth.js";
-import { adminApi } from "./admin-api.js";
-import { ADMIN_API_BASE } from "./admin-config.js";
+import { adminApi, downloadQrcodesCsv } from "./admin-api.js";
 import { logoutUser } from "../../firebase.js";
 
 guardAdminPage();
@@ -44,10 +43,8 @@ document.getElementById("qr-gen-form")?.addEventListener("submit", async (e) => 
     resultEl.hidden = false;
     resultEl.innerHTML = "<p class=\"muted\">Generating…</p>";
     const data = await adminApi.generateQr({ product, points, quantity });
-    const zipUrl = data.zipUrl ? `${ADMIN_API_BASE}${data.zipUrl}` : "";
     resultEl.innerHTML = `<p><strong>${data.count} codes generated</strong></p>
-      <p class="muted">Sample: ${data.codes.slice(0, 5).join(", ")}${data.codes.length > 5 ? "…" : ""}</p>
-      ${zipUrl ? `<a class="sp-btn sp-btn-soft sp-btn-sm" href="${zipUrl}" download>Download ZIP (520px PNG)</a>` : ""}`;
+      <p class="muted">Sample: ${data.codes.slice(0, 5).join(", ")}${data.codes.length > 5 ? "…" : ""}</p>`;
     loadQrcodes();
   } catch (err) {
     resultEl.innerHTML = `<p class="admin-login-error">${err.message}</p>`;
@@ -55,3 +52,7 @@ document.getElementById("qr-gen-form")?.addEventListener("submit", async (e) => 
 });
 
 loadQrcodes();
+
+document.getElementById("export-csv-btn")?.addEventListener("click", () => {
+  downloadQrcodesCsv().catch((err) => alert(err.message));
+});

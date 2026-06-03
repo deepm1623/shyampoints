@@ -16,7 +16,7 @@ async function load() {
     document.getElementById("stat-qr-gen").textContent = stats.totalQrGenerated ?? 0;
     document.getElementById("stat-qr-used").textContent = stats.totalQrUsed ?? 0;
     document.getElementById("stat-points").textContent = (stats.totalPointsIssued ?? 0).toLocaleString("en-IN");
-    document.getElementById("stat-pending").textContent = stats.pendingRedemptions ?? 0;
+    document.getElementById("stat-redeemed-total").textContent = stats.totalRewardsRedeemed ?? 0;
 
     const { transactions } = await adminApi.getTransactions();
     const el = document.getElementById("admin-recent-tx");
