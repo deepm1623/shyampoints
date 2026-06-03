@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
     <link rel="stylesheet" href="design-system.css" />
     <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="mobile.css" />
   </head>
   <body class="app-body sp-app dashboard-layout">
     <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div></div>
@@ -29,10 +30,14 @@
         </div>
       </header>
       <div class="sp-body">
-        <main class="sp-main profile-page-wrap">
-          <div class="page-title-block">
+        <main class="sp-main profile-page-wrap m-page">
+          <div class="sp-desktop-page-head page-title-block">
             <h1>Profile</h1>
             <p>Your membership and account details</p>
+          </div>
+          <div class="sp-mobile-only">
+            <h1 class="m-page-title">Profile</h1>
+            <p class="m-page-sub">Your membership account</p>
           </div>
           <article class="profile-premium-card">
             <div class="profile-avatar-wrap">

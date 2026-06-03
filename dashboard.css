@@ -1,4 +1,12 @@
-/* Shyam Points — Premium Dashboard */
+/* Shyam Points — Premium Dashboard (desktop 769px+; mobile uses mobile.css) */
+@media (max-width: 768px) {
+  .sp-mobile-only { display: block; }
+}
+
+@media (min-width: 769px) {
+  .sp-mobile-only { display: none !important; }
+}
+
 .dash-premium {
   --dash-primary: #2563eb;
   --dash-primary-dark: #1e40af;

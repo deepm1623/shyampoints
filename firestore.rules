@@ -84,5 +84,15 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
+
+    match /brands/{brandId} {
+      allow read: if isSignedIn() && (resource.data.status == 'active' || !('status' in resource.data) || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    match /offers/{offerId} {
+      allow read: if isSignedIn() && (resource.data.status == 'active' || !('status' in resource.data) || isAdmin());
+      allow write: if isAdmin();
+    }
   }
 }

@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
     <link rel="stylesheet" href="design-system.css" />
     <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="mobile.css" />
   </head>
   <body class="app-body sp-app dashboard-layout">
     <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div></div>
@@ -29,10 +30,23 @@
         </div>
       </header>
       <div class="sp-body">
-        <main class="sp-main">
-          <div class="page-title-block" style="margin-bottom:20px">
+        <main class="sp-main m-page">
+          <div class="sp-desktop-page-head page-title-block" style="margin-bottom:20px">
             <h1>Rewards</h1>
             <p>Redeem your points for premium rewards</p>
+          </div>
+          <div class="sp-mobile-only">
+            <h1 class="m-page-title">Rewards</h1>
+            <p class="m-page-sub">Redeem points for gift cards &amp; more</p>
+            <label class="m-search-bar"><i class="fa-solid fa-magnifying-glass"></i><input type="search" id="m-reward-search" placeholder="Search rewards…" aria-label="Search rewards" /></label>
+            <div class="m-reward-tabs" role="tablist">
+              <button type="button" class="m-tab active" data-category="all">All</button>
+              <button type="button" class="m-tab" data-category="gift">Gift Cards</button>
+              <button type="button" class="m-tab" data-category="cashback">Cashback</button>
+              <button type="button" class="m-tab" data-category="electronics">Electronics</button>
+              <button type="button" class="m-tab" data-category="shopping">Shopping</button>
+              <button type="button" class="m-tab" data-category="travel">Travel</button>
+            </div>
           </div>
           <div class="toolbar-premium sp-toolbar-mobile">
             <label class="sp-search sp-search-inline">

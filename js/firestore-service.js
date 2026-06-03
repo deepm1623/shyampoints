@@ -235,7 +235,12 @@ export async function uploadProfilePhoto(uid, file, callbacks = {}) {
     fileType: file.type,
   });
 
-  if (typeof onProgress === "function") onProgress(0);
+  let progressTick = null;
+  const reportProgress = (pct) => {
+    if (typeof onProgress === "function") onProgress(Math.min(100, Math.max(0, pct)));
+  };
+
+  reportProgress(3);
 
   const storageRef = ref(storage, storagePath);
   const uploadTask = uploadBytesResumable(storageRef, file, {
@@ -244,12 +249,23 @@ export async function uploadProfilePhoto(uid, file, callbacks = {}) {
     customMetadata: { uploadedBy: uid },
   });
 
+  let lastPct = 3;
+  progressTick = setInterval(() => {
+    if (lastPct < 12) {
+      lastPct += 1;
+      reportProgress(lastPct);
+    }
+  }, 180);
+
   const profileImage = await new Promise((resolve, reject) => {
     uploadTask.on(
       "state_changed",
       (snapshot) => {
         const { bytesTransferred, totalBytes, state } = snapshot;
-        const pct = totalBytes > 0 ? Math.round((bytesTransferred / totalBytes) * 100) : 0;
+        const pct =
+          totalBytes > 0
+            ? Math.max(15, Math.round((bytesTransferred / totalBytes) * 100))
+            : state === "running" ? 20 : 5;
 
         console.info("[Shyam Storage] Progress", {
           state,
@@ -258,17 +274,21 @@ export async function uploadProfilePhoto(uid, file, callbacks = {}) {
           percent: pct,
         });
 
-        if (typeof onProgress === "function") onProgress(pct);
+        lastPct = pct;
+        reportProgress(pct);
       },
       (error) => {
+        if (progressTick) clearInterval(progressTick);
         logStorageError("state_changed error", error);
         reject(error);
       },
       async () => {
+        if (progressTick) clearInterval(progressTick);
         try {
+          reportProgress(95);
           const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
           console.info("[Shyam Storage] Upload complete", { downloadUrl, path: storagePath });
-          if (typeof onProgress === "function") onProgress(100);
+          reportProgress(100);
           resolve(downloadUrl);
         } catch (error) {
           logStorageError("getDownloadURL", error);
@@ -334,6 +354,40 @@ export async function markAllNotificationsRead(uid) {
   const snap = await getDocs(q);
   const unread = snap.docs.filter((d) => !d.data().read);
   await Promise.all(unread.map((d) => updateDoc(d.ref, { read: true })));
+}
+
+export function subscribeBrands(onData, onError, max = 20) {
+  const q = query(collection(db, "brands"), limit(max));
+  return onSnapshot(
+    q,
+    (snap) => {
+      const list = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .filter((b) => !b.status || b.status === "active")
+        .sort((a, b) => String(a.name || a.title || "").localeCompare(String(b.name || b.title || "")));
+      onData(list);
+    },
+    onError
+  );
+}
+
+export function subscribeOffers(onData, onError, max = 15) {
+  const q = query(collection(db, "offers"), limit(max));
+  return onSnapshot(
+    q,
+    (snap) => {
+      const list = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .filter((o) => !o.status || o.status === "active")
+        .sort((a, b) => {
+          const ta = a.createdAt?.toDate?.()?.getTime() ?? 0;
+          const tb = b.createdAt?.toDate?.()?.getTime() ?? 0;
+          return tb - ta;
+        });
+      onData(list.slice(0, max));
+    },
+    onError
+  );
 }
 
 export function subscribeAnnouncements(onData, onError, max = 10) {

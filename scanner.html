@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
     <link rel="stylesheet" href="design-system.css" />
     <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="mobile.css" />
   </head>
   <body class="app-body sp-app dashboard-layout">
     <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div></div>
@@ -29,13 +30,18 @@
         </div>
       </header>
       <div class="sp-body">
-        <main class="sp-main">
-          <div class="page-title-block" style="margin-bottom:20px">
+        <main class="sp-main m-page">
+          <div class="sp-desktop-page-head page-title-block" style="margin-bottom:20px">
             <h1>Scan QR</h1>
             <p>Point your camera at a verified Shyam Sanitaries product code</p>
           </div>
+          <div class="sp-mobile-only m-scanner-head">
+            <h1>Scan &amp; Verify</h1>
+            <p class="m-page-sub">Align QR inside the frame to earn points</p>
+          </div>
           <div class="scanner-premium">
             <div id="scanner-frame" class="scanner-frame-premium">
+              <div class="scanner-scan-line sp-mobile-only" aria-hidden="true"></div>
               <div id="scanner-camera-error" class="scanner-camera-error" hidden>
                 <i class="fa-solid fa-camera-slash"></i>
                 <p>Camera unavailable</p>
@@ -57,6 +63,10 @@
               <button type="button" class="sp-btn sp-btn-ghost sp-btn-sm" id="switch-camera-btn"><i class="fa-solid fa-camera-rotate"></i> Switch</button>
               <button type="button" class="sp-btn sp-btn-ghost sp-btn-sm" id="restart-scan-btn-toolbar"><i class="fa-solid fa-rotate-right"></i> Restart</button>
             </div>
+            <form class="m-manual-entry sp-mobile-only" id="manual-scan-form">
+              <input type="text" id="manual-qr-input" placeholder="Enter QR code manually" autocomplete="off" />
+              <button type="submit" class="sp-btn sp-btn-primary sp-btn-sm">Verify</button>
+            </form>
             <div class="scanner-instructions">
               <h4>How to scan</h4>
               <ol>

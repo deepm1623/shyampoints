@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
     <link rel="stylesheet" href="design-system.css" />
     <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="mobile.css" />
   </head>
   <body class="app-body sp-app dashboard-layout history-page">
     <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div></div>
@@ -29,10 +30,21 @@
         </div>
       </header>
       <div class="sp-body">
-        <main class="sp-main">
-          <div class="page-title-block" style="margin-bottom:20px">
+        <main class="sp-main m-page">
+          <div class="sp-desktop-page-head page-title-block" style="margin-bottom:20px">
             <h1>Transactions</h1>
             <p>Earned and redeemed activity from your account</p>
+          </div>
+          <div class="sp-mobile-only">
+            <h1 class="m-page-title">History</h1>
+            <p class="m-page-sub">Rewards, points &amp; scan activity</p>
+            <label class="m-search-bar"><i class="fa-solid fa-magnifying-glass"></i><input type="search" id="m-history-search" placeholder="Search…" aria-label="Search history" /></label>
+            <div class="m-history-tabs m-filter-chips">
+              <button type="button" class="m-tab m-filter-chip active" data-filter="all">All</button>
+              <button type="button" class="m-tab m-filter-chip" data-filter="earned">Earned</button>
+              <button type="button" class="m-tab m-filter-chip" data-filter="redeemed">Redeemed</button>
+              <button type="button" class="m-tab m-filter-chip" data-filter="scanned">Scanned</button>
+            </div>
           </div>
           <div class="toolbar-premium sp-toolbar-mobile">
             <label class="sp-search sp-search-inline">

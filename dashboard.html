@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="design-system.css" />
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="dashboard.css" />
+    <link rel="stylesheet" href="mobile.css" />
   </head>
   <body class="app-body sp-app dash-premium">
     <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div><p>Loading dashboard…</p></div>
@@ -25,6 +26,73 @@
       <div class="sp-body dash-body">
         <main class="sp-main dash-main">
 
+          <!-- MOBILE HOME (≤768px) -->
+          <div id="m-home" class="sp-mobile-only">
+            <header class="m-top-header">
+              <div class="m-top-profile">
+                <button type="button" id="m-header-avatar-btn" aria-label="Profile">
+                  <img id="m-header-avatar" class="avatar-placeholder" src="" alt="" width="48" height="48" />
+                </button>
+                <div>
+                  <h1>Hello, <span id="m-welcome-name">Member</span> 👋</h1>
+                  <p class="m-top-meta">
+                    <span id="m-tier-pill" class="m-tier-pill bronze">Member</span>
+                    <span id="m-member-id">--</span>
+                  </p>
+                </div>
+              </div>
+              <div class="m-top-actions">
+                <button type="button" class="m-icon-btn" id="m-header-notify" aria-label="Notifications">
+                  <i class="fa-solid fa-bell"></i>
+                  <span id="m-notify-badge" class="m-notify-badge" hidden>0</span>
+                </button>
+              </div>
+            </header>
+
+            <section class="m-wallet-card" id="m-wallet-card" aria-label="Loyalty wallet">
+              <div class="m-wallet-top">
+                <div>
+                  <small>Current Points</small>
+                  <strong id="m-current-pts">0</strong>
+                </div>
+                <div style="text-align:right">
+                  <small>Lifetime</small>
+                  <strong id="m-lifetime-pts">0</strong>
+                </div>
+              </div>
+              <div class="m-wallet-grid">
+                <div><span>Wallet</span><strong id="m-wallet-pts">0</strong></div>
+                <div><span>Role</span><strong id="m-role">—</strong></div>
+                <div><span>City</span><strong id="m-city">—</strong></div>
+                <div><span>Tier</span><strong id="m-tier-badge">—</strong></div>
+              </div>
+              <div class="m-tier-row">
+                <span id="m-tier-from">Bronze</span>
+                <span id="m-tier-to">Silver</span>
+              </div>
+              <div class="m-progress-track"><div id="m-tier-progress" class="m-progress-fill"></div></div>
+              <p id="m-next-tier" class="m-next-tier">Earn points to unlock Silver</p>
+            </section>
+
+            <nav class="m-actions-grid" aria-label="Quick actions">
+              <a href="scanner.html" class="m-action-btn"><i class="fa-solid fa-qrcode"></i>Scan &amp; Verify</a>
+              <a href="history.html" class="m-action-btn"><i class="fa-solid fa-clock-rotate-left"></i>Product History</a>
+              <a href="rewards.html" class="m-action-btn"><i class="fa-solid fa-gift"></i>Rewards History</a>
+              <a href="history.html?filter=scan" class="m-action-btn"><i class="fa-solid fa-chart-pie"></i>Product Reports</a>
+            </nav>
+
+            <section>
+              <div class="m-section-head"><h2>Brands</h2></div>
+              <div id="m-brands-scroll" class="m-scroll-x"><div class="m-empty">Loading…</div></div>
+            </section>
+
+            <section>
+              <div class="m-section-head"><h2>Offers</h2></div>
+              <div id="m-offers-scroll" class="m-scroll-x"><div class="m-empty">Loading…</div></div>
+            </section>
+          </div>
+
+          <div class="sp-desktop-dash">
           <!-- SECTION 1 — HEADER -->
           <header class="dash-header dash-fade-in">
             <div class="dash-header-profile">
@@ -170,6 +238,7 @@
               </section>
             </aside>
           </div>
+          </div><!-- /.sp-desktop-dash -->
         </main>
       </div>
     </div>

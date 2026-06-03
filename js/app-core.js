@@ -5,6 +5,7 @@ import {
   displayValue,
   getMembership,
 } from "./firestore-service.js";
+import { initMobileNav } from "./mobile-shell.js";
 
 export const $ = (s, root = document) => root.querySelector(s);
 export const $$ = (s, root = document) => [...root.querySelectorAll(s)];
@@ -162,6 +163,8 @@ export function renderUserChrome(user, profile) {
   const memberId = p.memberId || memberIdFromUid(user.uid);
 
   setText("welcome-name", name || "Member");
+  setText("m-welcome-name", name || "Member");
+  setText("m-member-id", memberId);
   setText("header-user-name", name || "Member");
   setText("profile-name", name || "—");
 
@@ -186,6 +189,10 @@ export function renderUserChrome(user, profile) {
   setText("dash-city", displayValue(p.city, null, "—"));
   setText("header-points-badge", pts(currentPoints));
   setText("dash-tier-label", tier ? `${tier} Member` : "Member");
+
+  if (typeof window.__updateMobileWallet === "function" && hasProfile) {
+    window.__updateMobileWallet(profile, user);
+  }
 
   ["avatar", "profile-avatar", "header-avatar", "dash-header-avatar"].forEach((id) => {
     const el = document.getElementById(id);
@@ -243,6 +250,7 @@ export function renderUserChrome(user, profile) {
 export function initAppShell(pageId) {
   applyTheme();
   document.body.dataset.page = pageId;
+  initMobileNav(pageId);
 
   const navItems = [
     { id: "dashboard", href: "dashboard.html", icon: "fa-house", label: "Dashboard" },

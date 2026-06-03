@@ -28,8 +28,14 @@ bootProtected("settings", (user, profile) => {
   const progressText = $("#upload-progress-text");
 
   function setProgress(pct) {
-    if (progressWrap) progressWrap.hidden = false;
-    if (progressBar) progressBar.style.width = `${pct}%`;
+    if (progressWrap) {
+      progressWrap.hidden = false;
+      progressWrap.removeAttribute("hidden");
+    }
+    if (progressBar) {
+      progressBar.style.width = `${Math.max(pct, pct > 0 ? 4 : 0)}%`;
+      progressBar.setAttribute("aria-valuenow", String(pct));
+    }
     if (progressText) progressText.textContent = `${pct}%`;
     if (pct >= 100) {
       setTimeout(() => {
@@ -79,9 +85,28 @@ bootProtected("settings", (user, profile) => {
   const themeBtn = $("#theme-toggle");
   if (themeBtn && (localStorage.getItem("sp-theme") || "") === "dark") themeBtn.classList.add("on");
 
+  const themeBtnMobile = $("#theme-toggle-mobile");
+  if (themeBtnMobile && themeBtn && themeBtn.classList.contains("on")) {
+    themeBtnMobile.classList.add("on");
+  }
+
+  function syncThemeToggles() {
+    const on = themeBtn?.classList.contains("on");
+    themeBtnMobile?.classList.toggle("on", !!on);
+  }
+
   themeBtn?.addEventListener("click", () => {
     themeBtn.classList.toggle("on");
     localStorage.setItem("sp-theme", themeBtn.classList.contains("on") ? "dark" : "light");
+    syncThemeToggles();
+    applyTheme();
+    toast("Theme updated", "success");
+  });
+
+  themeBtnMobile?.addEventListener("click", () => {
+    themeBtnMobile.classList.toggle("on");
+    if (themeBtn) themeBtn.classList.toggle("on", themeBtnMobile.classList.contains("on"));
+    localStorage.setItem("sp-theme", themeBtnMobile.classList.contains("on") ? "dark" : "light");
     applyTheme();
     toast("Theme updated", "success");
   });

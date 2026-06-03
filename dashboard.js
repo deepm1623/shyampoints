@@ -3,6 +3,11 @@
  */
 import { bootProtected, $, format } from "./js/app-core.js";
 import {
+  initMobileHome,
+  updateMobileWallet,
+  teardownMobileHome,
+} from "./js/mobile-home.js";
+import {
   subscribeTransactions,
   subscribeRewards,
   subscribeNotifications,
@@ -272,14 +277,21 @@ function renderActivityFeed(transactions, notifications) {
 }
 
 function updateNotifyBadge(list) {
-  const badge = $("#notify-badge");
-  if (!badge) return;
   const unread = list.filter((n) => !n.read).length;
-  badge.hidden = unread <= 0;
-  if (unread > 0) badge.textContent = String(unread);
+  ["notify-badge", "m-notify-badge"].forEach((id) => {
+    const badge = document.getElementById(id);
+    if (!badge) return;
+    badge.hidden = unread <= 0;
+    if (unread > 0) badge.textContent = String(unread);
+  });
 }
 
-bootProtected("dashboard", (user) => {
+window.__updateMobileWallet = updateMobileWallet;
+
+bootProtected("dashboard", (user, profile) => {
+  initMobileHome(user);
+  if (profile) updateMobileWallet(profile, user);
+
   $("#dash-avatar-btn")?.addEventListener("click", () => {
     location.href = "profile.html";
   });
@@ -342,4 +354,5 @@ window.addEventListener("pagehide", () => {
   announceUnsub?.();
   leaderboardUnsub?.();
   pointsChart?.destroy();
+  teardownMobileHome();
 });

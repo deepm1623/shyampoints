@@ -299,6 +299,15 @@ bootProtected("scanner", (user) => {
     $("#scan-error-modal")?.classList.add("hidden");
     await resumeScanning();
   });
+
+  $("#manual-scan-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const code = $("#manual-qr-input")?.value?.trim();
+    if (!code) return;
+    await handleScan(code);
+    const input = $("#manual-qr-input");
+    if (input) input.value = "";
+  });
 });
 
 window.addEventListener("pagehide", () => txUnsub?.());

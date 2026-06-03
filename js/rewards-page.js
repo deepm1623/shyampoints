@@ -5,15 +5,27 @@ import { redeemViaApi, ApiError } from "./api-client.js";
 let pending = null;
 let allRewards = [];
 let rewardsUnsub = null;
+let activeCategory = "all";
+
+const REWARD_CATEGORIES = {
+  all: () => true,
+  gift: (r) => /gift|voucher|card/i.test(`${r.category || ""} ${r.title || ""}`),
+  cashback: (r) => /cash|money|wallet/i.test(`${r.category || ""} ${r.title || ""}`),
+  electronics: (r) => /electronic|gadget|speaker|phone/i.test(`${r.category || ""} ${r.title || ""}`),
+  shopping: (r) => /shop|amazon|flipkart|retail/i.test(`${r.category || ""} ${r.title || ""}`),
+  travel: (r) => /travel|flight|hotel|trip/i.test(`${r.category || ""} ${r.title || ""}`),
+};
 
 function render() {
   const grid = $("#reward-grid");
   if (!grid) return;
 
-  const q = ($("#reward-search")?.value || $("#reward-search-mobile")?.value || "").toLowerCase();
+  const q = ($("#reward-search")?.value || $("#reward-search-mobile")?.value || $("#m-reward-search")?.value || "").toLowerCase();
   const sort = $("#reward-sort")?.value || "points-asc";
 
   let list = [...allRewards];
+  const catFn = REWARD_CATEGORIES[activeCategory] || REWARD_CATEGORIES.all;
+  list = list.filter(catFn);
   list = list.filter((r) => {
     const title = (r.title || "").toLowerCase();
     const desc = (r.description || "").toLowerCase();
@@ -82,6 +94,16 @@ bootProtected("rewards", (user) => {
     render();
   });
   $("#reward-sort")?.addEventListener("change", render);
+  $("#m-reward-search")?.addEventListener("input", render);
+
+  $$(".m-reward-tabs .m-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      $$(".m-reward-tabs .m-tab").forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      activeCategory = tab.dataset.category || "all";
+      render();
+    });
+  });
 
   $("#cancel-redeem")?.addEventListener("click", () => {
     $("#redeem-modal")?.classList.add("hidden");

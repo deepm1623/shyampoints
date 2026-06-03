@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
     <link rel="stylesheet" href="design-system.css" />
     <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="mobile.css" />
   </head>
   <body class="app-body sp-app dashboard-layout">
     <div id="sp-loader" class="sp-loader"><div class="sp-loader-ring"></div></div>
@@ -29,11 +30,19 @@
         </div>
       </header>
       <div class="sp-body">
-        <main class="sp-main">
-          <div class="page-title-block">
+        <main class="sp-main m-page">
+          <div class="sp-desktop-page-head page-title-block">
             <h1>Settings</h1>
             <p>Manage your profile and preferences</p>
           </div>
+          <nav class="sp-mobile-only m-settings-list" aria-label="Settings shortcuts">
+            <a href="#settings-photo-wrap" class="m-settings-item"><i class="fa-solid fa-user"></i> Profile photo</a>
+            <a href="#settings-name" class="m-settings-item"><i class="fa-solid fa-sliders"></i> Profile settings</a>
+            <span class="m-settings-item"><i class="fa-solid fa-shield-halved"></i> Security</span>
+            <a href="notifications.html" class="m-settings-item"><i class="fa-solid fa-bell"></i> Notifications</a>
+            <span class="m-settings-item"><i class="fa-solid fa-palette"></i> Theme <button type="button" class="toggle" id="theme-toggle-mobile" aria-label="Toggle theme"></button></span>
+            <span class="m-settings-item"><i class="fa-solid fa-circle-question"></i> Help &amp; About</span>
+          </nav>
           <div class="settings-premium">
             <section class="settings-card">
               <h3>Profile settings</h3>
